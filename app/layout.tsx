@@ -17,11 +17,21 @@ const martian = Martian_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "osu! Search",
   title: {
     default: "osu! Search",
     template: "%s · osu! Search",
   },
   description: "Advanced osu! beatmap search. Filter by stars, approach rate, mapper, length, and the rest of the official query.",
+  appleWebApp: {
+    title: "osu! Search",
+  },
+  icons: {
+    icon: [
+      { url: "/icon0.svg", type: "image/svg+xml" },
+      { url: "/icon1.png", type: "image/png", sizes: "96x96" },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
