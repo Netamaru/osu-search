@@ -88,7 +88,7 @@ export interface SearchResponse {
 export interface SearchFilters {
   q: string;
   mode: "" | "0" | "1" | "2" | "3";
-  status: SearchStatus;
+  status: SearchStatus[];
   sort: string;
   genre: string;
   language: string;

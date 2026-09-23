@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GENRES, LANGUAGES, MODES, SORTS, STATUSES } from "@/lib/osu/constants";
-import { defaultFilters, hasAdvancedFilters } from "@/lib/osu/filters";
+import { defaultFilters, hasAdvancedFilters, toggleStatus } from "@/lib/osu/filters";
 import type { DateOp, SearchFilters } from "@/lib/osu/types";
 
 type When = "now" | "soon";
@@ -61,8 +61,8 @@ export function FilterPanel({
             key={status.id}
             type="button"
             className="pill"
-            aria-pressed={value.status === status.id}
-            onClick={() => onPatch({ status: status.id }, "now")}
+            aria-pressed={value.status.includes(status.id)}
+            onClick={() => onPatch({ status: toggleStatus(value.status, status.id) }, "now")}
           >
             {status.label}
           </button>

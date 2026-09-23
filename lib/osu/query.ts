@@ -1,4 +1,4 @@
-import type { SearchFilters } from "./types";
+import type { SearchFilters, SearchStatus } from "./types";
 
 function parseNumber(value: string): string | null {
   const trimmed = value.trim().replace(",", ".");
@@ -78,12 +78,15 @@ export function buildQuery(filters: SearchFilters): string {
   return parts.join(" ");
 }
 
-export function compileOsuParams(filters: SearchFilters): URLSearchParams {
+export function compileOsuParams(
+  filters: SearchFilters,
+  status: SearchStatus = filters.status[0] ?? "leaderboard",
+): URLSearchParams {
   const params = new URLSearchParams();
   const q = buildQuery(filters);
   if (q) params.set("q", q);
   if (filters.mode) params.set("m", filters.mode);
-  params.set("s", filters.status);
+  params.set("s", status);
   if (/^\d+$/.test(filters.genre)) params.set("g", filters.genre);
   if (/^\d+$/.test(filters.language)) params.set("l", filters.language);
 
@@ -103,5 +106,8 @@ export function compileOsuParams(filters: SearchFilters): URLSearchParams {
 }
 
 export function formatOsuQuery(filters: SearchFilters): string {
-  return [...compileOsuParams(filters).entries()].map(([key, value]) => `${key}=${value}`).join("\n");
+  const statuses = filters.status.length > 0 ? filters.status : (["leaderboard"] as const);
+  return statuses
+    .map((status) => [...compileOsuParams(filters, status).entries()].map(([key, value]) => `${key}=${value}`).join("\n"))
+    .join("\n\n");
 }

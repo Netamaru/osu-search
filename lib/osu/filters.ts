@@ -1,11 +1,29 @@
-import { isMode, isSort, isStatus } from "./constants";
-import type { DateOp, SearchFilters } from "./types";
+import { isMode, isSort, isStatus, STATUSES } from "./constants";
+import type { DateOp, SearchFilters, SearchStatus } from "./types";
+
+const STATUS_ORDER = STATUSES.map((status) => status.id);
+
+export function normalizeStatuses(values: string[]): SearchStatus[] {
+  const unique = [...new Set(values.filter(isStatus))];
+  if (unique.includes("any")) return ["any"];
+  const specifics = unique.filter((status) => status !== "leaderboard");
+  const chosen: SearchStatus[] =
+    specifics.length > 0 ? specifics : unique.filter((status) => status === "leaderboard");
+  return STATUS_ORDER.filter((status) => chosen.includes(status));
+}
+
+export function toggleStatus(current: SearchStatus[], id: SearchStatus): SearchStatus[] {
+  if (id === "any" || id === "leaderboard") return [id];
+  const specifics = current.filter((status) => status !== "any" && status !== "leaderboard");
+  const next = specifics.includes(id) ? specifics.filter((status) => status !== id) : [...specifics, id];
+  return next.length > 0 ? normalizeStatuses(next) : [id];
+}
 
 export function defaultFilters(): SearchFilters {
   return {
     q: "",
     mode: "",
-    status: "leaderboard",
+    status: ["leaderboard"],
     sort: "",
     genre: "",
     language: "",
@@ -95,7 +113,10 @@ export function filtersFromSearchParams(params: URLSearchParams): SearchFilters 
   if (mode && isMode(mode)) filters.mode = mode;
 
   const status = params.get("status");
-  if (status && isStatus(status)) filters.status = status;
+  if (status) {
+    const parsed = normalizeStatuses(status.split(","));
+    if (parsed.length > 0) filters.status = parsed;
+  }
 
   const sort = params.get("sort");
   if (sort && isSort(sort)) filters.sort = sort;
@@ -122,7 +143,7 @@ export function filtersToSearchParams(filters: SearchFilters): URLSearchParams {
   }
 
   if (filters.mode) params.set("mode", filters.mode);
-  if (filters.status !== defaults.status) params.set("status", filters.status);
+  if (filters.status.join(",") !== defaults.status.join(",")) params.set("status", filters.status.join(","));
   if (filters.sort) params.set("sort", filters.sort);
   if (filters.ranked && filters.rankedOp !== ">=") params.set("rankedOp", filters.rankedOp);
   if (filters.updated && filters.updatedOp !== ">=") params.set("updatedOp", filters.updatedOp);

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { defaultFilters, filtersFromSearchParams, filtersToSearchParams } from "./filters.ts";
+import { defaultFilters, filtersFromSearchParams, filtersToSearchParams, toggleStatus } from "./filters.ts";
 import { buildQuery, compileOsuParams, parseLength } from "./query.ts";
 
 test("compiles range and exact filters into the osu query", () => {
@@ -18,7 +18,7 @@ test("compiles range and exact filters into the osu query", () => {
   filters.ranked = "2020-01-01";
   filters.rankedOp = ">=";
   filters.mode = "0";
-  filters.status = "ranked";
+  filters.status = ["ranked"];
   filters.sort = "plays_desc";
   filters.video = true;
   filters.featuredArtist = true;
@@ -49,7 +49,7 @@ test("round-trips shareable filter urls", () => {
   const filters = defaultFilters();
   filters.q = "camellia";
   filters.mode = "3";
-  filters.status = "loved";
+  filters.status = ["loved"];
   filters.nsfw = true;
   filters.converts = true;
   filters.hpMax = "6";
@@ -60,6 +60,19 @@ test("round-trips shareable filter urls", () => {
   expect(restored).toEqual(filters);
 });
 
+test("keeps several statuses and treats presets as exclusive", () => {
+  expect(toggleStatus(["leaderboard"], "pending")).toEqual(["pending"]);
+  expect(toggleStatus(["pending"], "graveyard")).toEqual(["pending", "graveyard"]);
+  expect(toggleStatus(["pending", "graveyard"], "pending")).toEqual(["graveyard"]);
+  expect(toggleStatus(["pending", "graveyard"], "any")).toEqual(["any"]);
+  expect(toggleStatus(["ranked"], "ranked")).toEqual(["ranked"]);
+
+  const filters = defaultFilters();
+  filters.status = ["graveyard", "pending"];
+  const restored = filtersFromSearchParams(filtersToSearchParams(filters));
+  expect(restored.status).toEqual(["pending", "graveyard"]);
+});
+
 test("drops invalid sort and status values", () => {
   const params = new URLSearchParams({
     status: "mine",
@@ -67,7 +80,7 @@ test("drops invalid sort and status values", () => {
     mode: "9",
   });
   const filters = filtersFromSearchParams(params);
-  expect(filters.status).toBe("leaderboard");
+  expect(filters.status).toEqual(["leaderboard"]);
   expect(filters.sort).toBe("");
   expect(filters.mode).toBe("");
 });

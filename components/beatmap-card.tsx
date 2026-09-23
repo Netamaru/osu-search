@@ -21,7 +21,7 @@ export function BeatmapCard({
   const cover = beatmapset.covers.card || beatmapset.covers["cover@2x"] || beatmapset.covers.list;
 
   return (
-    <article className="card card-link group relative flex h-full flex-col">
+    <article className="card card-link group relative flex h-full flex-col hover:z-20">
       <Link
         href={`/beatmapsets/${beatmapset.id}`}
         className="absolute inset-0 z-0"
@@ -60,7 +60,7 @@ export function BeatmapCard({
           <span className="px-1.5">·</span>
           {compactCount(beatmapset.favourite_count)} fav
         </p>
-        <div className="mt-auto flex flex-wrap gap-1.5">
+        <div className="relative z-10 mt-auto flex flex-wrap gap-1.5">
           {waiting ? <span className="font-mono text-[11px] text-faint">stars…</span> : null}
           {beatmaps.slice(0, 8).map((beatmap) => (
             <DifficultyChip
@@ -71,7 +71,27 @@ export function BeatmapCard({
               name={beatmap.version}
             />
           ))}
-          {extra > 0 ? <span className="font-mono text-[11px] text-faint">+{extra}</span> : null}
+          {extra > 0 ? (
+            <span className="group/more relative">
+              <button
+                type="button"
+                className="font-mono text-[11px] text-faint underline decoration-dotted underline-offset-2 hover:text-fg"
+              >
+                +{extra}
+              </button>
+              <span className="pointer-events-none invisible absolute bottom-full left-0 z-30 flex max-h-48 w-56 flex-wrap gap-1.5 overflow-y-auto border border-line bg-canvas p-2 group-hover/more:pointer-events-auto group-hover/more:visible group-focus-within/more:pointer-events-auto group-focus-within/more:visible">
+                {beatmaps.slice(8).map((beatmap) => (
+                  <DifficultyChip
+                    key={`${beatmap.mode}-${beatmap.id}`}
+                    variant="rating"
+                    mode={beatmap.mode}
+                    rating={beatmap.difficulty_rating}
+                    name={beatmap.version}
+                  />
+                ))}
+              </span>
+            </span>
+          ) : null}
         </div>
         <BeatmapActions id={beatmapset.id} size="sm" />
       </div>
