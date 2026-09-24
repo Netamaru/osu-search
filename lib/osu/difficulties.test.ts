@@ -53,12 +53,20 @@ test("catch chips use the converted star rating, not the osu rating", () => {
 
   const shown = visibleBeatmaps(beatmapset, "2");
   expect(shown.map((item) => item.difficulty_rating)).toEqual([6.4]);
+  expect(shown[0].mode).toBe("osu");
+  expect(shown[0].convert).toBe(true);
+  expect(shown[0].convertPending).toBe(false);
   expect(needsConvertRatings(beatmapset, "2")).toBe(true);
 });
 
-test("does not fall back to osu stars while catch converts are still loading", () => {
-  const beatmapset = set([beatmap({ difficulty_rating: 8.2 })]);
-  expect(visibleBeatmaps(beatmapset, "2", undefined)).toEqual([]);
+test("shows standard difficulties with fallback stars while catch converts are still loading", () => {
+  const beatmapset = set([beatmap({ id: 1, difficulty_rating: 8.2 })]);
+  const shown = visibleBeatmaps(beatmapset, "2", undefined);
+  expect(shown.length).toBe(1);
+  expect(shown[0].mode).toBe("osu");
+  expect(shown[0].difficulty_rating).toBe(8.2);
+  expect(shown[0].convert).toBe(true);
+  expect(shown[0].convertPending).toBe(true);
 });
 
 test("native catch difficulties do not need a convert lookup", () => {
@@ -66,5 +74,51 @@ test("native catch difficulties do not need a convert lookup", () => {
     beatmap({ id: 2, mode: "fruits", mode_int: 2, version: "Rain", difficulty_rating: 5.1 }),
   ]);
   expect(needsConvertRatings(beatmapset, "2")).toBe(false);
-  expect(visibleBeatmaps(beatmapset, "2").map((item) => item.difficulty_rating)).toEqual([5.1]);
+  const shown = visibleBeatmaps(beatmapset, "2");
+  expect(shown.map((item) => item.difficulty_rating)).toEqual([5.1]);
+  expect(shown[0].mode).toBe("fruits");
+});
+
+test("shows both native catch and converted standard difficulties sorted by rating", () => {
+  const beatmapset = set(
+    [
+      beatmap({ id: 1, mode: "osu", version: "Standard Insane", difficulty_rating: 7.0 }),
+      beatmap({ id: 2, mode: "fruits", mode_int: 2, version: "Native Rain", difficulty_rating: 4.5 }),
+    ],
+    [
+      beatmap({ id: 1, mode: "fruits", mode_int: 2, convert: true, version: "Standard Insane", difficulty_rating: 5.5 }),
+    ],
+  );
+
+  const shown = visibleBeatmaps(beatmapset, "2");
+  expect(shown.length).toBe(2);
+  // Native Rain is 4.5
+  expect(shown[0].version).toBe("Native Rain");
+  expect(shown[0].mode).toBe("fruits");
+  expect(shown[0].difficulty_rating).toBe(4.5);
+  expect(shown[0].convert).toBeFalsy();
+
+  // Standard Insane converted is 5.5
+  expect(shown[1].version).toBe("Standard Insane");
+  expect(shown[1].mode).toBe("osu");
+  expect(shown[1].difficulty_rating).toBe(5.5);
+  expect(shown[1].convert).toBe(true);
+});
+
+test("respects convertsFilter exclude and only", () => {
+  const beatmapset = set(
+    [
+      beatmap({ id: 1, mode: "osu", version: "Standard Insane", difficulty_rating: 7.0 }),
+      beatmap({ id: 2, mode: "fruits", mode_int: 2, version: "Native Rain", difficulty_rating: 4.5 }),
+    ],
+    [
+      beatmap({ id: 1, mode: "fruits", mode_int: 2, convert: true, version: "Standard Insane", difficulty_rating: 5.5 }),
+    ],
+  );
+
+  const excludeConverts = visibleBeatmaps(beatmapset, "2", undefined, "exclude");
+  expect(excludeConverts.map((b) => b.version)).toEqual(["Native Rain"]);
+
+  const onlyConverts = visibleBeatmaps(beatmapset, "2", undefined, "only");
+  expect(onlyConverts.map((b) => b.version)).toEqual(["Standard Insane"]);
 });

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Martian_Mono } from "next/font/google";
 import { CredentialsProvider } from "@/components/credentials-provider";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="column flex-1" aria-hidden="true" />
           </main>
         </CredentialsProvider>
+        <ScrollToTop />
         <footer className="mt-auto border-t border-line">
           <div className="column flex flex-col gap-2 px-5 py-8 text-sm text-muted md:flex-row md:items-center md:justify-between md:px-10">
             <p>Not affiliated with ppy. Beatmap data comes from the osu!api.</p>

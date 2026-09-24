@@ -17,7 +17,7 @@ export function SetupNotice() {
         <button type="button" className="btn-solid h-11 px-5 text-sm font-semibold" onClick={openModal}>
           Add API client
         </button>
-        <a className="label hover:text-fg" href="https://osu.ppy.sh/home/account/edit#oauth">
+        <a className="label hover:text-fg" href="https://osu.ppy.sh/home/account/edit#oauth" target="_blank" rel="noopener noreferrer">
           Open osu! settings
         </a>
       </div>

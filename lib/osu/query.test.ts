@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { defaultFilters, filtersFromSearchParams, filtersToSearchParams, toggleStatus } from "./filters.ts";
-import { buildQuery, compileOsuParams, parseLength } from "./query.ts";
+import { buildQuery, compileOsuParams, parseLength, parseOsuQuery } from "./query.ts";
 
 test("compiles range and exact filters into the osu query", () => {
   const filters = defaultFilters();
@@ -20,8 +20,8 @@ test("compiles range and exact filters into the osu query", () => {
   filters.mode = "0";
   filters.status = ["ranked"];
   filters.sort = "plays_desc";
-  filters.video = true;
-  filters.featuredArtist = true;
+  filters.video = "only";
+  filters.featuredArtist = "only";
   filters.genre = "3";
 
   expect(buildQuery(filters)).toBe(
@@ -50,8 +50,8 @@ test("round-trips shareable filter urls", () => {
   filters.q = "camellia";
   filters.mode = "3";
   filters.status = ["loved"];
-  filters.nsfw = true;
-  filters.converts = true;
+  filters.nsfw = "any";
+  filters.converts = "only";
   filters.hpMax = "6";
   filters.updated = "2024-05-01";
   filters.updatedOp = "<=";
@@ -84,3 +84,60 @@ test("drops invalid sort and status values", () => {
   expect(filters.sort).toBe("");
   expect(filters.mode).toBe("");
 });
+
+test("parses osu query back into filters", () => {
+  const query = `q=freedom dive stars>=6.5 stars<=8 ar>=9.3 cs<=4 length>=210 keys>=7 artist=xi creator=rustbell title="freedom dive" difficulty="four dimensions" ranked>=2020-01-01
+m=0
+s=ranked
+sort=plays_desc
+e=video
+c=featured_artists
+g=3
+nsfw=false`;
+
+  const parsed = parseOsuQuery(query);
+  expect(parsed.q).toBe("freedom dive");
+  expect(parsed.starsMin).toBe("6.5");
+  expect(parsed.starsMax).toBe("8");
+  expect(parsed.arMin).toBe("9.3");
+  expect(parsed.csMax).toBe("4");
+  expect(parsed.lengthMin).toBe("210");
+  expect(parsed.keysMin).toBe("7");
+  expect(parsed.artist).toBe("xi");
+  expect(parsed.creator).toBe("rustbell");
+  expect(parsed.title).toBe("freedom dive");
+  expect(parsed.difficulty).toBe("four dimensions");
+  expect(parsed.ranked).toBe("2020-01-01");
+  expect(parsed.rankedOp).toBe(">=");
+  expect(parsed.mode).toBe("0");
+  expect(parsed.status).toEqual(["ranked"]);
+  expect(parsed.sort).toBe("plays_desc");
+  expect(parsed.video).toBe("only");
+  expect(parsed.featuredArtist).toBe("only");
+  expect(parsed.genre).toBe("3");
+});
+
+test("parses plain query string with inline filters", () => {
+  const parsed = parseOsuQuery("xi stars>=7.5 bpm>=200");
+  expect(parsed.q).toBe("xi");
+  expect(parsed.starsMin).toBe("7.5");
+  expect(parsed.bpmMin).toBe("200");
+});
+
+test("supports tri-state include, only, and exclude filters", () => {
+  const filters = defaultFilters();
+  filters.video = "exclude";
+  filters.storyboard = "only";
+  filters.nsfw = "only";
+
+  const params = filtersToSearchParams(filters);
+  expect(params.get("video")).toBe("exclude");
+  expect(params.get("storyboard")).toBe("only");
+  expect(params.get("nsfw")).toBe("only");
+
+  const restored = filtersFromSearchParams(params);
+  expect(restored.video).toBe("exclude");
+  expect(restored.storyboard).toBe("only");
+  expect(restored.nsfw).toBe("only");
+});
+

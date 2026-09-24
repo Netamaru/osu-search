@@ -1,5 +1,6 @@
 import { isMode, isSort, isStatus, STATUSES } from "./constants";
-import type { DateOp, SearchFilters, SearchStatus } from "./types";
+import { rulesetForMode } from "./difficulties";
+import type { Beatmapset, DateOp, SearchFilters, SearchStatus, TriStateFilter } from "./types";
 
 const STATUS_ORDER = STATUSES.map((status) => status.id);
 
@@ -27,11 +28,11 @@ export function defaultFilters(): SearchFilters {
     sort: "",
     genre: "",
     language: "",
-    nsfw: false,
-    video: false,
-    storyboard: false,
-    featuredArtist: false,
-    converts: false,
+    nsfw: "exclude",
+    video: "any",
+    storyboard: "any",
+    featuredArtist: "any",
+    converts: "any",
     starsMin: "",
     starsMax: "",
     arMin: "",
@@ -91,9 +92,14 @@ const TEXT_KEYS = [
   "updated",
 ] as const satisfies readonly (keyof SearchFilters)[];
 
-function flag(params: URLSearchParams, key: string): boolean {
+function triStateFlag(params: URLSearchParams, key: string, defaultValue: TriStateFilter = "any"): TriStateFilter {
   const value = params.get(key);
-  return value === "1" || value === "true";
+  if (!value) return defaultValue;
+  const lower = value.toLowerCase();
+  if (lower === "only" || lower === "1" || lower === "true") return "only";
+  if (lower === "exclude" || lower === "0" || lower === "-1" || lower === "false") return "exclude";
+  if (lower === "any" || lower === "all") return "any";
+  return defaultValue;
 }
 
 function dateOp(value: string | null): DateOp {
@@ -123,11 +129,11 @@ export function filtersFromSearchParams(params: URLSearchParams): SearchFilters 
 
   filters.rankedOp = dateOp(params.get("rankedOp"));
   filters.updatedOp = dateOp(params.get("updatedOp"));
-  filters.nsfw = flag(params, "nsfw");
-  filters.video = flag(params, "video");
-  filters.storyboard = flag(params, "storyboard");
-  filters.featuredArtist = flag(params, "featuredArtist");
-  filters.converts = flag(params, "converts");
+  filters.nsfw = triStateFlag(params, "nsfw", "exclude");
+  filters.video = triStateFlag(params, "video", "any");
+  filters.storyboard = triStateFlag(params, "storyboard", "any");
+  filters.featuredArtist = triStateFlag(params, "featuredArtist", "any");
+  filters.converts = triStateFlag(params, "converts", "any");
 
   return filters;
 }
@@ -147,11 +153,11 @@ export function filtersToSearchParams(filters: SearchFilters): URLSearchParams {
   if (filters.sort) params.set("sort", filters.sort);
   if (filters.ranked && filters.rankedOp !== ">=") params.set("rankedOp", filters.rankedOp);
   if (filters.updated && filters.updatedOp !== ">=") params.set("updatedOp", filters.updatedOp);
-  if (filters.nsfw) params.set("nsfw", "1");
-  if (filters.video) params.set("video", "1");
-  if (filters.storyboard) params.set("storyboard", "1");
-  if (filters.featuredArtist) params.set("featuredArtist", "1");
-  if (filters.converts) params.set("converts", "1");
+  if (filters.nsfw !== defaults.nsfw) params.set("nsfw", filters.nsfw);
+  if (filters.video !== defaults.video) params.set("video", filters.video);
+  if (filters.storyboard !== defaults.storyboard) params.set("storyboard", filters.storyboard);
+  if (filters.featuredArtist !== defaults.featuredArtist) params.set("featuredArtist", filters.featuredArtist);
+  if (filters.converts !== defaults.converts) params.set("converts", filters.converts);
 
   return params;
 }
@@ -189,10 +195,38 @@ export function hasAdvancedFilters(filters: SearchFilters): boolean {
 
   return (
     keys.some((key) => filters[key] !== defaults[key]) ||
-    filters.nsfw ||
-    filters.video ||
-    filters.storyboard ||
-    filters.featuredArtist ||
-    filters.converts
+    filters.nsfw !== defaults.nsfw ||
+    filters.video !== defaults.video ||
+    filters.storyboard !== defaults.storyboard ||
+    filters.featuredArtist !== defaults.featuredArtist ||
+    filters.converts !== defaults.converts
   );
+}
+
+export function applyIncludeFilters(beatmapsets: Beatmapset[], filters: SearchFilters): Beatmapset[] {
+  const ruleset = rulesetForMode(filters.mode);
+
+  return beatmapsets.filter((set) => {
+    // Video filter
+    if (filters.video === "only" && !set.video) return false;
+    if (filters.video === "exclude" && set.video) return false;
+
+    // Storyboard filter
+    if (filters.storyboard === "only" && !set.storyboard) return false;
+    if (filters.storyboard === "exclude" && set.storyboard) return false;
+
+    // Explicit (NSFW) filter
+    if (filters.nsfw === "only" && !set.nsfw) return false;
+    if (filters.nsfw === "exclude" && set.nsfw) return false;
+
+    // Converts filter
+    if (ruleset && ruleset !== "osu") {
+      const hasNative = (set.beatmaps ?? []).some((b) => b.mode === ruleset && !b.deleted_at);
+      const hasConvert = (set.beatmaps ?? []).some((b) => b.mode === "osu" && !b.deleted_at);
+      if (filters.converts === "only" && !hasConvert) return false;
+      if (filters.converts === "exclude" && !hasNative) return false;
+    }
+
+    return true;
+  });
 }

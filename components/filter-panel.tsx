@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { GENRES, LANGUAGES, MODES, SORTS, STATUSES } from "@/lib/osu/constants";
 import { defaultFilters, hasAdvancedFilters, toggleStatus } from "@/lib/osu/filters";
-import type { DateOp, SearchFilters } from "@/lib/osu/types";
+import type { DateOp, SearchFilters, TriStateFilter } from "@/lib/osu/types";
 
 type When = "now" | "soon";
 
@@ -202,24 +202,31 @@ export function FilterPanel({
           </div>
 
           <FilterGroup label="Include">
-            <Toggle pressed={value.video} onClick={() => onPatch({ video: !value.video }, "now")}>
-              Video
-            </Toggle>
-            <Toggle pressed={value.storyboard} onClick={() => onPatch({ storyboard: !value.storyboard }, "now")}>
-              Storyboard
-            </Toggle>
-            <Toggle
-              pressed={value.featuredArtist}
-              onClick={() => onPatch({ featuredArtist: !value.featuredArtist }, "now")}
-            >
-              Featured artist
-            </Toggle>
-            <Toggle pressed={value.converts} onClick={() => onPatch({ converts: !value.converts }, "now")}>
-              Converts
-            </Toggle>
-            <Toggle pressed={value.nsfw} onClick={() => onPatch({ nsfw: !value.nsfw }, "now")}>
-              Explicit
-            </Toggle>
+            <TriStateSegmented
+              label="Video"
+              value={value.video}
+              onChange={(next) => onPatch({ video: next }, "now")}
+            />
+            <TriStateSegmented
+              label="Storyboard"
+              value={value.storyboard}
+              onChange={(next) => onPatch({ storyboard: next }, "now")}
+            />
+            <TriStateSegmented
+              label="Featured artist"
+              value={value.featuredArtist}
+              onChange={(next) => onPatch({ featuredArtist: next }, "now")}
+            />
+            <TriStateSegmented
+              label="Converts"
+              value={value.converts}
+              onChange={(next) => onPatch({ converts: next }, "now")}
+            />
+            <TriStateSegmented
+              label="Explicit"
+              value={value.nsfw}
+              onChange={(next) => onPatch({ nsfw: next }, "now")}
+            />
           </FilterGroup>
         </div>
       ) : null}
@@ -227,28 +234,72 @@ export function FilterPanel({
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-2">
       <p className="label">{label}</p>
-      <div className="flex flex-wrap gap-2">{children}</div>
+      <div className="flex flex-wrap gap-2.5">{children}</div>
     </div>
   );
 }
 
-function Toggle({
-  pressed,
-  onClick,
-  children,
+function TriStateSegmented({
+  label,
+  value,
+  onChange,
 }: {
-  pressed: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
+  label: string;
+  value: TriStateFilter;
+  onChange: (next: TriStateFilter) => void;
 }) {
   return (
-    <button type="button" className="pill" aria-pressed={pressed} onClick={onClick}>
-      {children}
-    </button>
+    <div className="inline-flex items-center gap-2.5 rounded-[4px] border border-line bg-canvas px-3 py-1.5 shadow-xs">
+      <span className="font-mono text-xs font-semibold text-fg">{label}</span>
+      <div className="inline-flex rounded-[3px] border border-line bg-subtle p-0.5 font-mono text-[11px]">
+        <button
+          type="button"
+          className={`cursor-pointer rounded-[2px] px-2.5 py-0.5 transition-all ${
+            value === "any"
+              ? "bg-fg text-canvas font-semibold shadow-xs"
+              : "text-muted hover:text-fg"
+          }`}
+          onClick={() => onChange("any")}
+          title={`${label}: Include both (with and without)`}
+        >
+          Include
+        </button>
+        <button
+          type="button"
+          className={`cursor-pointer rounded-[2px] px-2.5 py-0.5 transition-all ${
+            value === "only"
+              ? "bg-fg text-canvas font-semibold shadow-xs"
+              : "text-muted hover:text-fg"
+          }`}
+          onClick={() => onChange("only")}
+          title={`${label}: Only with this feature`}
+        >
+          Only
+        </button>
+        <button
+          type="button"
+          className={`cursor-pointer rounded-[2px] px-2.5 py-0.5 transition-all ${
+            value === "exclude"
+              ? "bg-accent text-white font-semibold shadow-xs"
+              : "text-muted hover:text-fg"
+          }`}
+          onClick={() => onChange("exclude")}
+          title={`${label}: Exclude (without this feature)`}
+        >
+          Exclude
+        </button>
+      </div>
+    </div>
   );
 }
 

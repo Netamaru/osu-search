@@ -117,7 +117,7 @@ export function CredentialsModal({
               Remove
             </button>
           ) : null}
-          <a className="label hover:text-fg" href="https://osu.ppy.sh/home/account/edit#oauth">
+          <a className="label hover:text-fg" href="https://osu.ppy.sh/home/account/edit#oauth" target="_blank" rel="noopener noreferrer">
             Open osu! settings
           </a>
         </div>

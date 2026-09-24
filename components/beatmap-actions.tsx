@@ -8,6 +8,14 @@ function OpenIcon({ className }: { className: string }) {
   );
 }
 
+function DetailIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="none">
+      <path d="M2.5 3.5h11M2.5 8h11M2.5 12.5h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function DownloadIcon({ className }: { className: string }) {
   return (
     <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="none">
@@ -18,30 +26,53 @@ function DownloadIcon({ className }: { className: string }) {
   );
 }
 
-export function BeatmapActions({ id, size = "md" }: { id: number; size?: "sm" | "md" }) {
+export function BeatmapActions({
+  id,
+  size = "md",
+  onOpenDetails,
+}: {
+  id: number;
+  size?: "sm" | "md";
+  onOpenDetails?: () => void;
+}) {
   const compact = size === "sm";
   const box = compact
-    ? "min-h-8 gap-1.5 px-2.5 py-1.5 text-xs"
-    : "min-h-11 gap-2 px-3 py-2 text-sm";
+    ? "min-h-8 gap-1.5 px-2 py-1 text-center text-xs leading-tight"
+    : "min-h-11 gap-2 px-3 py-2 text-center text-sm leading-snug";
   const icon = compact ? "h-3.5 w-3.5 shrink-0" : "h-4 w-4 shrink-0";
 
   return (
     <div className="relative z-10 grid grid-cols-2 gap-2">
-      <a
-        className={`btn-solid inline-flex w-full items-center justify-center font-semibold ${box}`}
-        href={`https://osu.ppy.sh/beatmapsets/${id}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        <OpenIcon className={icon} />
-        Open on osu!
-      </a>
+      {onOpenDetails ? (
+        <button
+          type="button"
+          className={`btn-solid inline-flex w-full items-center justify-center font-semibold ${box}`}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onOpenDetails();
+          }}
+        >
+          <DetailIcon className={icon} />
+          <span>Open beatmap details</span>
+        </button>
+      ) : (
+        <a
+          className={`btn-solid inline-flex w-full items-center justify-center font-semibold ${box}`}
+          href={`https://osu.ppy.sh/beatmapsets/${id}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <OpenIcon className={icon} />
+          <span>Open on osu!</span>
+        </a>
+      )}
       <a
         className={`btn-direct inline-flex w-full items-center justify-center font-semibold ${box}`}
         href={`osu://dl/${id}`}
       >
         <DownloadIcon className={icon} />
-        osu!direct
+        <span>osu!direct</span>
       </a>
     </div>
   );

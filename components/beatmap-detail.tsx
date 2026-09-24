@@ -1,4 +1,5 @@
 import { BeatmapActions } from "@/components/beatmap-actions";
+import { BeatmapCover } from "@/components/beatmap-cover";
 import { DifficultyChip } from "@/components/difficulty-chip";
 import { SearchBackLink } from "@/components/search-back-link";
 import { MODE_LABEL } from "@/lib/osu/constants";
@@ -28,23 +29,35 @@ export function BeatmapDetail({ beatmapset }: { beatmapset: Beatmapset }) {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
         <div className="card h-fit self-start overflow-hidden">
-          {cover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cover}
-              alt=""
-              className={`block h-auto w-full ${beatmapset.nsfw ? "blur-2xl" : ""}`}
-            />
-          ) : (
-            <div className="aspect-[2.2/1] bg-subtle" />
-          )}
+          <BeatmapCover
+            src={cover}
+            id={beatmapset.id}
+            title={beatmapset.title}
+            artist={beatmapset.artist}
+            nsfw={beatmapset.nsfw}
+            aspect="detail"
+            blurMode="always"
+          />
         </div>
         <div className="flex flex-col gap-4">
           <p className="label">{formatStatus(beatmapset.status)}</p>
           <h1 className="display text-4xl sm:text-5xl">{beatmapset.title}</h1>
           <p className="text-lg text-muted">{beatmapset.artist}</p>
           <p className="font-mono text-sm text-faint">
-            mapped by {beatmapset.creator}
+            mapped by{" "}
+            <a
+              href={
+                beatmapset.user_id
+                  ? `https://osu.ppy.sh/users/${beatmapset.user_id}`
+                  : `https://osu.ppy.sh/users/${encodeURIComponent(beatmapset.creator)}`
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="text-faint hover:text-fg hover:underline underline-offset-2 transition-colors"
+              title={`View ${beatmapset.creator}'s profile on osu!`}
+            >
+              {beatmapset.creator}
+            </a>
             <span className="px-1.5">·</span>
             {compactCount(beatmapset.play_count)} plays
             <span className="px-1.5">·</span>

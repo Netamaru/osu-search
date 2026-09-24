@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { BeatmapCard } from "@/components/beatmap-card";
+import { BeatmapDetailModal } from "@/components/beatmap-detail-modal";
 import { useCredentials } from "@/components/credentials-provider";
 import { FilterPanel } from "@/components/filter-panel";
 import { QueryStrip } from "@/components/query-strip";
@@ -18,6 +19,73 @@ type Result = {
   total: number;
   notice: string | null;
 };
+
+const autoLoadListeners = new Set<() => void>();
+let autoLoadCached: boolean | null = null;
+
+function subscribeAutoLoad(callback: () => void) {
+  autoLoadListeners.add(callback);
+  return () => {
+    autoLoadListeners.delete(callback);
+  };
+}
+
+function getAutoLoadSnapshot() {
+  if (autoLoadCached === null) {
+    try {
+      autoLoadCached = localStorage.getItem("osu_auto_load_more") === "true";
+    } catch {
+      autoLoadCached = false;
+    }
+  }
+  return autoLoadCached;
+}
+
+function getAutoLoadServerSnapshot() {
+  return false;
+}
+
+function setAutoLoadStorage(next: boolean) {
+  autoLoadCached = next;
+  try {
+    localStorage.setItem("osu_auto_load_more", String(next));
+  } catch {
+    // Ignore storage errors
+  }
+  autoLoadListeners.forEach((listener) => listener());
+}
+
+function AutoLoadToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="group inline-flex items-center gap-2 cursor-pointer select-none font-mono text-xs text-muted hover:text-fg transition-colors"
+      title="Automatically load more beatmaps when scrolling near the bottom"
+    >
+      <span
+        className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border transition-colors ${
+          checked ? "border-accent bg-accent" : "border-line bg-subtle"
+        }`}
+      >
+        <span
+          className={`inline-block h-2.5 w-2.5 rounded-full bg-white transition-transform ${
+            checked ? "translate-x-3.5" : "translate-x-0.5"
+          }`}
+        />
+      </span>
+      <span>Auto load on scroll</span>
+    </button>
+  );
+}
 
 export function SearchPage({ query }: { query: string }) {
   const router = useRouter();
@@ -47,6 +115,10 @@ export function SearchPage({ query }: { query: string }) {
   const convertMapRef = useRef(convertMap);
   const [convertPass, setConvertPass] = useState(0);
   const { ready, headers, openModal } = useCredentials();
+  const [detailBeatmapset, setDetailBeatmapset] = useState<{ id: number; initial?: Beatmapset } | null>(null);
+
+  const autoLoadMore = useSyncExternalStore(subscribeAutoLoad, getAutoLoadSnapshot, getAutoLoadServerSnapshot);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const scrollRestore = useRef<number | null | undefined>(undefined);
 
@@ -147,11 +219,12 @@ export function SearchPage({ query }: { query: string }) {
 
   useEffect(() => {
     if (!ready || snapshot.key !== urlKey || !snapshot.result) return;
-    const mode = filtersFromSearchParams(new URLSearchParams(urlKey)).mode;
+    const currentFilters = filtersFromSearchParams(new URLSearchParams(urlKey));
+    const mode = currentFilters.mode;
     if (mode !== "1" && mode !== "2" && mode !== "3") return;
 
     const missing = snapshot.result.beatmapsets
-      .filter((beatmapset) => needsConvertRatings(beatmapset, mode) && convertMapRef.current[beatmapset.id] === undefined)
+      .filter((beatmapset) => needsConvertRatings(beatmapset, mode, currentFilters.converts) && convertMapRef.current[beatmapset.id] === undefined)
       .map((beatmapset) => beatmapset.id)
       .slice(0, 5);
     if (missing.length === 0) return;
@@ -250,6 +323,60 @@ export function SearchPage({ query }: { query: string }) {
     }
   }
 
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+  });
+
+  useEffect(() => {
+    if (!autoLoadMore || !result?.cursor || loadingMore || loading) return;
+
+    let ticking = false;
+
+    const checkBottom = () => {
+      if (loadingMore || loading || !result?.cursor) return;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const clientHeight = window.innerHeight;
+      const scrollHeight = document.documentElement.scrollHeight;
+
+      // Only trigger if user has scrolled down and actually reached the bottom (within 80px)
+      if (scrollTop > 100 && scrollTop + clientHeight >= scrollHeight - 80) {
+        loadMoreRef.current();
+      }
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          checkBottom();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    const sentinel = sentinelRef.current;
+    let observer: IntersectionObserver | null = null;
+    if (sentinel) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          const first = entries[0];
+          if (first && first.isIntersecting) {
+            checkBottom();
+          }
+        },
+        { rootMargin: "0px", threshold: 0.1 },
+      );
+      observer.observe(sentinel);
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (observer) observer.disconnect();
+    };
+  }, [autoLoadMore, result?.cursor, loadingMore, loading]);
+
   return (
     <div className="flex flex-col">
       <section className="border-b border-line">
@@ -286,7 +413,7 @@ export function SearchPage({ query }: { query: string }) {
           </button>
         </form>
 
-        <QueryStrip filters={draft} />
+        <QueryStrip filters={draft} onApply={commit} />
       </div>
       </section>
 
@@ -306,11 +433,14 @@ export function SearchPage({ query }: { query: string }) {
         {!setup && result?.notice ? <p className="text-sm text-muted">{result.notice}</p> : null}
 
         {!setup && (loading || result) ? (
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-mono text-sm tabular-nums text-muted">
               {loading && !result ? "Searching…" : `${(result?.total ?? 0).toLocaleString()} beatmaps`}
               {loading && result ? " · updating" : ""}
             </p>
+            {result?.cursor ? (
+              <AutoLoadToggle checked={autoLoadMore} onChange={setAutoLoadStorage} />
+            ) : null}
           </div>
         ) : null}
 
@@ -326,6 +456,8 @@ export function SearchPage({ query }: { query: string }) {
                 beatmapset={beatmapset}
                 mode={committed.mode}
                 converts={convertMap[beatmapset.id]}
+                convertsFilter={committed.converts}
+                onOpenDetails={() => setDetailBeatmapset({ id: beatmapset.id, initial: beatmapset })}
               />
             ))}
             {loading && !result
@@ -336,17 +468,38 @@ export function SearchPage({ query }: { query: string }) {
           </div>
         ) : null}
 
-        {!setup && result?.cursor ? (
-          <button
-            type="button"
-            className="btn-ghost h-11 self-start px-5 text-sm font-medium disabled:opacity-50"
-            onClick={loadMore}
-            disabled={loadingMore}
-          >
-            {loadingMore ? "Loading…" : "Load more"}
-          </button>
+        {loadingMore ? (
+          <div className="flex items-center justify-center gap-2 py-4 font-mono text-xs text-muted">
+            <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
+            <span>Loading more beatmaps…</span>
+          </div>
         ) : null}
+
+        {!setup && result?.cursor ? (
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <button
+              type="button"
+              className="btn-ghost h-11 px-5 text-sm font-medium disabled:opacity-50"
+              onClick={loadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Loading…" : "Load more"}
+            </button>
+            <AutoLoadToggle checked={autoLoadMore} onChange={setAutoLoadStorage} />
+          </div>
+        ) : null}
+
+        {/* Sentinel for infinite scroll auto-load */}
+        <div ref={sentinelRef} className="h-4 w-full pointer-events-none" aria-hidden="true" />
       </section>
+
+      {detailBeatmapset ? (
+        <BeatmapDetailModal
+          id={detailBeatmapset.id}
+          initialBeatmapset={detailBeatmapset.initial}
+          onClose={() => setDetailBeatmapset(null)}
+        />
+      ) : null}
     </div>
   );
 }

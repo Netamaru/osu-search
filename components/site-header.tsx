@@ -1,7 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import { ApiClientButton } from "@/components/credentials-provider";
+import { ChangelogModal } from "@/components/changelog-modal";
 import { SearchBackLink } from "@/components/search-back-link";
 
 export function SiteHeader() {
+  const [changelogOpen, setChangelogOpen] = useState(false);
+
   return (
     <div className="sticky top-0 z-40">
       <header className="border-b border-line bg-canvas">
@@ -11,13 +17,22 @@ export function SiteHeader() {
           </SearchBackLink>
           <div className="flex items-center">
             <ApiClientButton />
-            <span className="mx-4 h-4 w-px bg-line" aria-hidden="true" />
+            <span className="mx-3.5 h-4 w-px bg-line" aria-hidden="true" />
+            <button
+              type="button"
+              className="label hover:text-fg transition-colors"
+              onClick={() => setChangelogOpen(true)}
+            >
+              Changelog
+            </button>
+            <span className="mx-3.5 h-4 w-px bg-line" aria-hidden="true" />
             <a className="label hover:text-fg" href="https://osu.ppy.sh/beatmapsets">
               osu! beatmaps
             </a>
           </div>
         </div>
       </header>
+      {changelogOpen ? <ChangelogModal onClose={() => setChangelogOpen(false)} /> : null}
     </div>
   );
 }

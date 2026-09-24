@@ -37,6 +37,7 @@ export interface Beatmap {
   status: BeatmapStatus;
   max_combo?: number | null;
   convert?: boolean;
+  convertPending?: boolean;
   deleted_at?: string | null;
 }
 
@@ -85,6 +86,8 @@ export interface SearchResponse {
   search?: { sort: string };
 }
 
+export type TriStateFilter = "any" | "only" | "exclude";
+
 export interface SearchFilters {
   q: string;
   mode: "" | "0" | "1" | "2" | "3";
@@ -92,11 +95,11 @@ export interface SearchFilters {
   sort: string;
   genre: string;
   language: string;
-  nsfw: boolean;
-  video: boolean;
-  storyboard: boolean;
-  featuredArtist: boolean;
-  converts: boolean;
+  nsfw: TriStateFilter;
+  video: TriStateFilter;
+  storyboard: TriStateFilter;
+  featuredArtist: TriStateFilter;
+  converts: TriStateFilter;
   starsMin: string;
   starsMax: string;
   arMin: string;

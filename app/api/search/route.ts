@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { MissingCredentialsError, OsuApiError, osuGet } from "@/lib/osu/client";
-import { filtersFromSearchParams } from "@/lib/osu/filters";
+import { applyIncludeFilters, filtersFromSearchParams } from "@/lib/osu/filters";
 import { compileOsuParams } from "@/lib/osu/query";
 import { credentialsFailure, resolveCredentials } from "@/lib/osu/request-credentials";
 import { mergeSearchPages, parseStatusCursors } from "@/lib/osu/search-pages";
@@ -23,6 +23,9 @@ export async function GET(request: Request) {
       const cursor = incoming.get("cursor");
       if (cursor) params.set("cursor_string", cursor);
       const data = await osuGet<SearchResponse>("/beatmapsets/search", resolved.credentials, params);
+      if (data.beatmapsets) {
+        data.beatmapsets = applyIncludeFilters(data.beatmapsets, filters);
+      }
       return NextResponse.json(data);
     }
 
@@ -36,6 +39,9 @@ export async function GET(request: Request) {
         const params = compileOsuParams(filters, status);
         if (cursor) params.set("cursor_string", cursor);
         const data = await osuGet<SearchResponse>("/beatmapsets/search", resolved.credentials, params);
+        if (data.beatmapsets) {
+          data.beatmapsets = applyIncludeFilters(data.beatmapsets, filters);
+        }
         return { status, ...data };
       }),
     );
