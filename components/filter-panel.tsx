@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GENRES, LANGUAGES, MODES, SORTS, STATUSES } from "@/lib/osu/constants";
 import { defaultFilters, hasAdvancedFilters, toggleStatus } from "@/lib/osu/filters";
 import type { DateOp, SearchFilters, TriStateFilter } from "@/lib/osu/types";
 
 type When = "now" | "soon";
+
+const ADVANCED_OPEN_KEY = "osu_advanced_filters_open";
 
 const RANGES: { key: string; min: keyof SearchFilters; max: keyof SearchFilters; hint?: string }[] = [
   { key: "Stars", min: "starsMin", max: "starsMax" },
@@ -33,11 +35,34 @@ export function FilterPanel({
   onReplace,
 }: {
   value: SearchFilters;
-  onPatch: (partial: Partial<SearchFilters>, when: When) => void;
+  onPatch: (partial: Partial<SearchFilters>, when?: When) => void;
   onReplace: (next: SearchFilters) => void;
 }) {
-  const [open, setOpen] = useState(() => hasAdvancedFilters(value));
+  const [open, setOpen] = useState(false);
   const advanced = hasAdvancedFilters(value);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(ADVANCED_OPEN_KEY);
+      if (saved !== null) {
+        setOpen(saved === "true");
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  function toggleOpen() {
+    setOpen((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem(ADVANCED_OPEN_KEY, String(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,7 +73,7 @@ export function FilterPanel({
             type="button"
             className="pill"
             aria-pressed={value.mode === mode.id}
-            onClick={() => onPatch({ mode: mode.id }, "now")}
+            onClick={() => onPatch({ mode: mode.id }, "soon")}
           >
             {mode.label}
           </button>
@@ -62,7 +87,7 @@ export function FilterPanel({
             type="button"
             className="pill"
             aria-pressed={value.status.includes(status.id)}
-            onClick={() => onPatch({ status: toggleStatus(value.status, status.id) }, "now")}
+            onClick={() => onPatch({ status: toggleStatus(value.status, status.id) }, "soon")}
           >
             {status.label}
           </button>
@@ -71,7 +96,7 @@ export function FilterPanel({
 
       <label className="flex max-w-xs flex-col gap-2">
         <span className="label">Sort</span>
-        <select className="field" value={value.sort} onChange={(event) => onPatch({ sort: event.target.value }, "now")}>
+        <select className="field" value={value.sort} onChange={(event) => onPatch({ sort: event.target.value }, "soon")}>
           {SORTS.map((sort) => (
             <option key={sort.id || "default"} value={sort.id}>
               {sort.label}
@@ -85,7 +110,7 @@ export function FilterPanel({
           type="button"
           className="btn-ghost h-10 px-4 text-sm font-medium"
           aria-expanded={open}
-          onClick={() => setOpen((current) => !current)}
+          onClick={toggleOpen}
         >
           {open ? "Hide advanced filters" : "Advanced filters"}
           {advanced ? " · on" : ""}
@@ -100,15 +125,21 @@ export function FilterPanel({
               <button
                 type="button"
                 className="label hover:text-fg"
-                onClick={() =>
+                onClick={() => {
+                  try {
+                    localStorage.setItem(ADVANCED_OPEN_KEY, "false");
+                  } catch {
+                    // Ignore storage errors
+                  }
+                  setOpen(false);
                   onReplace({
                     ...defaultFilters(),
                     q: value.q,
                     mode: value.mode,
                     status: value.status,
                     sort: value.sort,
-                  })
-                }
+                  });
+                }}
               >
                 Reset
               </button>
@@ -158,7 +189,7 @@ export function FilterPanel({
             ))}
             <label className="flex flex-col gap-2">
               <span className="label">Genre</span>
-              <select className="field" value={value.genre} onChange={(event) => onPatch({ genre: event.target.value }, "now")}>
+              <select className="field" value={value.genre} onChange={(event) => onPatch({ genre: event.target.value }, "soon")}>
                 <option value="">Any</option>
                 {GENRES.map((genre) => (
                   <option key={genre.id} value={genre.id}>
@@ -172,7 +203,7 @@ export function FilterPanel({
               <select
                 className="field"
                 value={value.language}
-                onChange={(event) => onPatch({ language: event.target.value }, "now")}
+                onChange={(event) => onPatch({ language: event.target.value }, "soon")}
               >
                 <option value="">Any</option>
                 {LANGUAGES.map((language) => (
@@ -190,14 +221,14 @@ export function FilterPanel({
               value={value.ranked}
               op={value.rankedOp}
               onValue={(ranked) => onPatch({ ranked }, "soon")}
-              onOp={(rankedOp) => onPatch({ rankedOp }, "now")}
+              onOp={(rankedOp) => onPatch({ rankedOp }, "soon")}
             />
             <DateField
               label="Updated"
               value={value.updated}
               op={value.updatedOp}
               onValue={(updated) => onPatch({ updated }, "soon")}
-              onOp={(updatedOp) => onPatch({ updatedOp }, "now")}
+              onOp={(updatedOp) => onPatch({ updatedOp }, "soon")}
             />
           </div>
 
@@ -205,27 +236,27 @@ export function FilterPanel({
             <TriStateSegmented
               label="Video"
               value={value.video}
-              onChange={(next) => onPatch({ video: next }, "now")}
+              onChange={(next) => onPatch({ video: next }, "soon")}
             />
             <TriStateSegmented
               label="Storyboard"
               value={value.storyboard}
-              onChange={(next) => onPatch({ storyboard: next }, "now")}
+              onChange={(next) => onPatch({ storyboard: next }, "soon")}
             />
             <TriStateSegmented
               label="Featured artist"
               value={value.featuredArtist}
-              onChange={(next) => onPatch({ featuredArtist: next }, "now")}
+              onChange={(next) => onPatch({ featuredArtist: next }, "soon")}
             />
             <TriStateSegmented
               label="Converts"
               value={value.converts}
-              onChange={(next) => onPatch({ converts: next }, "now")}
+              onChange={(next) => onPatch({ converts: next }, "soon")}
             />
             <TriStateSegmented
               label="Explicit"
               value={value.nsfw}
-              onChange={(next) => onPatch({ nsfw: next }, "now")}
+              onChange={(next) => onPatch({ nsfw: next }, "soon")}
             />
           </FilterGroup>
         </div>

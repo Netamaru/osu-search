@@ -7,7 +7,7 @@ import { DifficultyChip } from "@/components/difficulty-chip";
 import { useCredentials } from "@/components/credentials-provider";
 import { SetupNotice } from "@/components/setup-notice";
 import { MODE_LABEL } from "@/lib/osu/constants";
-import { absoluteUrl, compactCount, formatLength, formatStatus } from "@/lib/format";
+import { absoluteUrl, compactCount, formatLength, formatShortDate, formatStatus, formatUtcDateTime } from "@/lib/format";
 import type { Beatmap, Beatmapset, Ruleset } from "@/lib/osu/types";
 
 const RULESETS: Ruleset[] = ["osu", "taiko", "fruits", "mania"];
@@ -46,6 +46,9 @@ type ModalState =
   | { status: "error"; message: string; beatmapset: Beatmapset | null }
   | { status: "ok"; beatmapset: Beatmapset; fullyLoaded: boolean };
 
+const DETAIL_CACHE_MAX = 50;
+const detailMemoryCache = new Map<number, Beatmapset>();
+
 export function BeatmapDetailModal({
   id,
   initialBeatmapset,
@@ -57,11 +60,12 @@ export function BeatmapDetailModal({
 }) {
   const titleId = useId();
   const { ready, headers, openModal } = useCredentials();
-  const [state, setState] = useState<ModalState>(() =>
-    initialBeatmapset
-      ? { status: "ok", beatmapset: initialBeatmapset, fullyLoaded: false }
-      : { status: "loading", beatmapset: null },
-  );
+  const [state, setState] = useState<ModalState>(() => {
+    const cached = detailMemoryCache.get(id);
+    if (cached) return { status: "ok", beatmapset: cached, fullyLoaded: true };
+    if (initialBeatmapset) return { status: "ok", beatmapset: initialBeatmapset, fullyLoaded: false };
+    return { status: "loading", beatmapset: null };
+  });
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -101,6 +105,12 @@ export function BeatmapDetailModal({
           }));
           return;
         }
+
+        if (detailMemoryCache.size >= DETAIL_CACHE_MAX) {
+          const oldest = detailMemoryCache.keys().next().value;
+          if (oldest !== undefined) detailMemoryCache.delete(oldest);
+        }
+        detailMemoryCache.set(id, data);
         setState({ status: "ok", beatmapset: data, fullyLoaded: true });
       })
       .catch((err: unknown) => {
@@ -215,13 +225,13 @@ export function BeatmapDetailModal({
                   />
                 </div>
 
-                <div className="flex flex-col gap-4">
+                <div className="flex min-w-0 flex-col gap-4">
                   <p className="label">{formatStatus(activeBeatmapset.status)}</p>
-                  <div>
-                    <h2 id={titleId} className="display text-3xl sm:text-4xl">
+                  <div className="min-w-0">
+                    <h2 id={titleId} className="display text-3xl sm:text-4xl break-words [overflow-wrap:anywhere]">
                       {activeBeatmapset.title}
                     </h2>
-                    <p className="mt-1 text-base text-muted">{activeBeatmapset.artist}</p>
+                    <p className="mt-1 text-base text-muted break-words [overflow-wrap:anywhere]">{activeBeatmapset.artist}</p>
                   </div>
                   <p className="font-mono text-xs text-faint">
                     mapped by{" "}
@@ -247,6 +257,27 @@ export function BeatmapDetailModal({
                         <span className="px-1.5">·</span>
                         {Math.round(activeBeatmapset.bpm)} BPM
                       </>
+                    ) : null}
+                    {activeBeatmapset.last_updated ? (
+                      <span className="whitespace-nowrap">
+                        <span className="px-1.5">·</span>
+                        <span className="group/date relative pointer-events-auto inline-flex items-center cursor-help">
+                          <time
+                            dateTime={activeBeatmapset.last_updated}
+                            title={formatUtcDateTime(activeBeatmapset.last_updated)}
+                            suppressHydrationWarning
+                            className="hover:text-fg hover:underline underline-offset-2 transition-colors"
+                          >
+                            updated {formatShortDate(activeBeatmapset.last_updated)}
+                          </time>
+                          <span
+                            role="tooltip"
+                            className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 z-30 mb-1.5 hidden w-max rounded-[2px] border border-line bg-slab px-2 py-1 font-mono text-[11px] font-medium leading-none text-on-slab shadow-lg group-hover/date:block group-focus-within/date:block"
+                          >
+                            {formatUtcDateTime(activeBeatmapset.last_updated)}
+                          </span>
+                        </span>
+                      </span>
                     ) : null}
                   </p>
                   {activeBeatmapset.nsfw ? <p className="label text-accent">Explicit</p> : null}

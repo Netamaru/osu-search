@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { compactCount, formatStatus, statusIcon } from "@/lib/format";
 
 function DiscPattern({ className }: { className: string }) {
   return (
@@ -53,26 +54,54 @@ function FallbackBanner({ id = 0, title, artist }: { id?: number; title?: string
   );
 }
 
+function PlayIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="currentColor">
+      <path
+        fillRule="evenodd"
+        d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function HeartIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="currentColor">
+      <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001z" />
+    </svg>
+  );
+}
+
 export function BeatmapCover({
   src,
   alt = "",
   id = 0,
   title,
   artist,
+  status,
   nsfw = false,
+  plays,
+  favourites,
   aspect = "card",
   className = "",
   blurMode = "hover",
+  priority = false,
 }: {
   src?: string | null;
   alt?: string;
   id?: number;
   title?: string;
   artist?: string;
+  status?: string;
   nsfw?: boolean;
+  plays?: number;
+  favourites?: number;
   aspect?: "card" | "detail";
   className?: string;
   blurMode?: "hover" | "always";
+  priority?: boolean;
 }) {
   const [hasError, setHasError] = useState(false);
   const [prevSrc, setPrevSrc] = useState(src);
@@ -97,16 +126,56 @@ export function BeatmapCover({
         <img
           src={src}
           alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "low"}
           onError={() => setHasError(true)}
           className={`h-full w-full object-cover transition duration-200 ${blurClass}`}
         />
       ) : (
         <FallbackBanner id={id} title={title} artist={artist} />
       )}
-      {nsfw ? (
-        <span className="absolute top-2 left-2 z-10 bg-slab px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-on-slab uppercase">
-          Explicit
-        </span>
+      {status || nsfw ? (
+        <div className="absolute top-2 left-2 z-10 flex flex-wrap items-center gap-1.5">
+          {status ? (
+            <span className="inline-flex items-center gap-1 bg-slab px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-on-slab uppercase shadow-xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={statusIcon(status)}
+                alt=""
+                className="h-3 w-auto shrink-0 object-contain"
+              />
+              <span>{formatStatus(status)}</span>
+            </span>
+          ) : null}
+          {nsfw ? (
+            <span className="bg-slab px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-on-slab uppercase shadow-xs">
+              Explicit
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      {plays !== undefined || favourites !== undefined ? (
+        <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1">
+          {plays !== undefined ? (
+            <span
+              className="inline-flex items-center gap-1.5 bg-slab px-2 py-0.5 font-mono text-[10px] tracking-wide text-on-slab shadow-xs tabular-nums"
+              title={`${plays.toLocaleString()} plays`}
+            >
+              <PlayIcon className="h-3.5 w-3.5 shrink-0 fill-current text-on-slab" />
+              <span>{compactCount(plays)}</span>
+            </span>
+          ) : null}
+          {favourites !== undefined ? (
+            <span
+              className="inline-flex items-center gap-1.5 bg-slab px-2 py-0.5 font-mono text-[10px] tracking-wide text-on-slab shadow-xs tabular-nums"
+              title={`${favourites.toLocaleString()} favourites`}
+            >
+              <HeartIcon className="h-3.5 w-3.5 shrink-0 fill-current text-accent" />
+              <span>{compactCount(favourites)}</span>
+            </span>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

@@ -20,9 +20,59 @@ type ChangelogEntry = {
 
 const CHANGELOG_DATA: ChangelogEntry[] = [
   {
-    version: "v1.2.0",
+    version: "v1.3.0",
     date: "Latest",
     badge: "Current",
+    highlights:
+      "Card redesign, layout shift elimination, advanced filter query sync, and stability improvements.",
+    changes: [
+      {
+        type: "feat",
+        title: "Beatmap Card Status & Stats Redesign",
+        description:
+          "Relocated beatmap status badge to the top-left and added play count & favourites badges with crisp play and heart icons to the top-right over the cover.",
+      },
+      {
+        type: "feat",
+        title: "Last Updated Date Display with UTC Pop-up",
+        description:
+          "Beatmap cards and detail views now display the last updated date in the user's local short date format with a full UTC timestamp hover tooltip.",
+      },
+      {
+        type: "improve",
+        title: "Zero-CLS Convert Rating Loading & Scroll Stability",
+        description:
+          "Eliminated upward scroll jumping and layout shifts during asynchronous star rating calculation by locking difficulty chip dimensions, reserving chip row height, and enforcing scroll anchoring.",
+      },
+      {
+        type: "improve",
+        title: "Full Advanced Filters Query Serialization",
+        description:
+          "All advanced filters (BPM, AR, CS, OD, HP, length, keys, mapper, artist, etc.) now sync directly with URL search params for instant sharing and direct query imports.",
+      },
+      {
+        type: "improve",
+        title: "Filter Debounce & State Persistence",
+        description:
+          "Added a 350ms debounce delay before triggering searches while adjusting filters, and persist advanced filters collapse state across page reloads.",
+      },
+      {
+        type: "fix",
+        title: "Long Title Word-Break & Overflow Prevention",
+        description:
+          "Fixed unbroken long beatmap titles and artist strings spilling outside card and modal boundaries with flex min-width constraints and universal word breaking.",
+      },
+      {
+        type: "fix",
+        title: "Convert Rating Resiliency & Stuck Calculation Fix",
+        description:
+          "Made convert resolution error-tolerant per beatmapset and optimized batch requests to ensure calculations never get stuck indefinitely.",
+      },
+    ],
+  },
+  {
+    version: "v1.2.0",
+    date: "September 2026",
     highlights: "Converts support, terminal loading aesthetic, query syntax highlighting, and UI polish.",
     changes: [
       {

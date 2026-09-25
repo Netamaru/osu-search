@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { defaultFilters, filtersFromSearchParams, filtersToSearchParams, toggleStatus } from "./filters.ts";
-import { buildQuery, compileOsuParams, parseLength, parseOsuQuery } from "./query.ts";
+import { buildQuery, compileOsuParams, formatOsuQuery, parseLength, parseOsuQuery } from "./query.ts";
 
 test("compiles range and exact filters into the osu query", () => {
   const filters = defaultFilters();
@@ -140,4 +140,76 @@ test("supports tri-state include, only, and exclude filters", () => {
   expect(restored.storyboard).toBe("only");
   expect(restored.nsfw).toBe("only");
 });
+
+test("formatOsuQuery formats all advanced filters and parseOsuQuery round-trips them", () => {
+  const filters = defaultFilters();
+  filters.q = "ghost";
+  filters.mode = "3";
+  filters.status = ["ranked", "loved"];
+  filters.sort = "difficulty_desc";
+  filters.genre = "3";
+  filters.language = "3";
+  filters.video = "exclude";
+  filters.storyboard = "only";
+  filters.featuredArtist = "exclude";
+  filters.converts = "exclude";
+  filters.nsfw = "only";
+  filters.starsMin = "5.5";
+  filters.starsMax = "7.2";
+  filters.arMin = "9";
+  filters.arMax = "10";
+  filters.csMin = "4";
+  filters.csMax = "4";
+  filters.odMin = "8";
+  filters.odMax = "8";
+  filters.hpMin = "6";
+  filters.hpMax = "6";
+  filters.bpmMin = "180";
+  filters.bpmMax = "220";
+  filters.lengthMin = "120";
+  filters.lengthMax = "210";
+  filters.keysMin = "4";
+  filters.keysMax = "4";
+  filters.artist = "Camellia";
+  filters.creator = "Sotarks";
+  filters.title = "Ghost";
+  filters.difficulty = "Expert";
+  filters.source = "Touhou";
+  filters.tag = "electronic";
+  filters.ranked = "2023-01-01";
+  filters.rankedOp = ">=";
+  filters.updated = "2024-01-01";
+  filters.updatedOp = "<=";
+
+  const formatted = formatOsuQuery(filters);
+  expect(formatted).toContain("video=exclude");
+  expect(formatted).toContain("storyboard=only");
+  expect(formatted).toContain("featured_artists=exclude");
+  expect(formatted).toContain("converts=exclude");
+  expect(formatted).toContain("nsfw=only");
+  expect(formatted).toContain("genre=3");
+  expect(formatted).toContain("language=3");
+  expect(formatted).toContain("s=ranked,loved");
+  expect(formatted).toContain("m=3");
+
+  const restored = parseOsuQuery(formatted);
+  expect(restored).toEqual(filters);
+});
+
+test("parseOsuQuery parses advanced filters in inline query string", () => {
+  const inline = "camellia stars>=6.5 video=exclude storyboard=only converts=exclude mode=mania status=ranked genre=Anime language=Japanese nsfw=only";
+  const parsed = parseOsuQuery(inline);
+
+  expect(parsed.q).toBe("camellia");
+  expect(parsed.starsMin).toBe("6.5");
+  expect(parsed.video).toBe("exclude");
+  expect(parsed.storyboard).toBe("only");
+  expect(parsed.converts).toBe("exclude");
+  expect(parsed.mode).toBe("3");
+  expect(parsed.status).toEqual(["ranked"]);
+  expect(parsed.genre).toBe("3");
+  expect(parsed.language).toBe("3");
+  expect(parsed.nsfw).toBe("only");
+});
+
 

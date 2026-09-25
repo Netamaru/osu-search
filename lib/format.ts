@@ -47,13 +47,20 @@ function readableDifficultyColor(hex: string): string {
   return rgbToHex(r, g, b);
 }
 
+const DEFAULT_FALLBACK_COLOR = readableDifficultyColor("#AAAAAA");
+const PRECOMPUTED_STOPS: readonly [number, string][] = DIFFICULTY_STOPS.map(([min, hex]) => [
+  min,
+  readableDifficultyColor(hex),
+]);
+
 export function difficultyColor(rating: number): string {
-  if (rating < 0.1) return readableDifficultyColor("#AAAAAA");
-  let color = DIFFICULTY_STOPS[0][1];
-  for (const [min, hex] of DIFFICULTY_STOPS) {
+  if (rating < 0.1) return DEFAULT_FALLBACK_COLOR;
+  let color = PRECOMPUTED_STOPS[0][1];
+  for (let i = 0; i < PRECOMPUTED_STOPS.length; i++) {
+    const [min, hex] = PRECOMPUTED_STOPS[i];
     if (rating >= min) color = hex;
   }
-  return readableDifficultyColor(color);
+  return color;
 }
 
 export function difficultyTextColor(): string {
@@ -88,3 +95,61 @@ export function formatStatus(status: string): string {
   if (status === "wip") return "WIP";
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
+
+export function statusIcon(status: string): string {
+  switch (status.toLowerCase()) {
+    case "ranked":
+      return "/status/ranked.png";
+    case "approved":
+      return "/status/approved.png";
+    case "loved":
+      return "/status/loved.png";
+    case "qualified":
+      return "/status/qualified.png";
+    case "pending":
+      return "/status/pending.png";
+    case "wip":
+      return "/status/wip.png";
+    case "graveyard":
+      return "/status/graveyard.png";
+    default:
+      return "/status/pending.png";
+  }
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const day = d.getUTCDate();
+  const month = MONTHS[d.getUTCMonth()];
+  const year = d.getUTCFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+export function formatShortDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+}
+
+export function formatUtcDateTime(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const hours = String(d.getUTCHours()).padStart(2, "0");
+  const minutes = String(d.getUTCMinutes()).padStart(2, "0");
+  const seconds = String(d.getUTCSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+}
+

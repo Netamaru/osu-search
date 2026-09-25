@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { BeatmapCard } from "@/components/beatmap-card";
 import { BeatmapDetailModal } from "@/components/beatmap-detail-modal";
 import { useCredentials } from "@/components/credentials-provider";
@@ -19,6 +19,10 @@ type Result = {
   total: number;
   notice: string | null;
 };
+
+const FILTER_DEBOUNCE_MS = 700;
+const SEARCH_CACHE_MAX = 50;
+const searchCache = new Map<string, Result>();
 
 const autoLoadListeners = new Set<() => void>();
 let autoLoadCached: boolean | null = null;
@@ -103,6 +107,7 @@ export function SearchPage({ query }: { query: string }) {
   const timer = useRef<number | null>(null);
   const pendingWrite = useRef<string | null>(null);
   const requestId = useRef(0);
+  const [debouncing, setDebouncing] = useState(false);
 
   const [snapshot, setSnapshot] = useState<{
     key: string | null;
@@ -146,7 +151,11 @@ export function SearchPage({ query }: { query: string }) {
     function onPop() {
       if (window.location.pathname !== "/") return;
       pendingWrite.current = null;
-      if (timer.current) window.clearTimeout(timer.current);
+      if (timer.current) {
+        window.clearTimeout(timer.current);
+        timer.current = null;
+      }
+      setDebouncing(false);
       setHistoryQuery(window.location.search.replace(/^\?/, ""));
     }
     window.addEventListener("popstate", onPop);
@@ -163,7 +172,11 @@ export function SearchPage({ query }: { query: string }) {
       return;
     }
     if (parsedKey === filtersToSearchParams(draftRef.current).toString()) return;
-    if (timer.current) window.clearTimeout(timer.current);
+    if (timer.current) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+    setDebouncing(false);
     draftRef.current = next;
     setDraft(next);
   }, [urlKey]);
@@ -175,9 +188,18 @@ export function SearchPage({ query }: { query: string }) {
   }, []);
 
   useEffect(() => {
+    setConvertPass(0);
+  }, [urlKey]);
+
+  useEffect(() => {
     if (!ready) return;
     const controller = new AbortController();
     const id = ++requestId.current;
+
+    const cached = searchCache.get(urlKey);
+    if (cached) {
+      setSnapshot((current) => (current.key === urlKey ? current : { key: urlKey, setup: false, error: null, result: cached }));
+    }
 
     fetch(`/api/search?${urlKey}`, { signal: controller.signal, headers })
       .then(async (response) => {
@@ -189,25 +211,35 @@ export function SearchPage({ query }: { query: string }) {
           return;
         }
         if (!response.ok) {
-          setSnapshot({ key: urlKey, result: null, error: data.message || "Search failed.", setup: false });
+          if (!cached) {
+            setSnapshot({ key: urlKey, result: null, error: data.message || "Search failed.", setup: false });
+          }
           return;
         }
+        const nextResult: Result = {
+          beatmapsets: data.beatmapsets ?? [],
+          cursor: data.cursor_string,
+          total: data.total ?? 0,
+          notice: typeof data.error === "string" ? data.error : null,
+        };
+        if (searchCache.size >= SEARCH_CACHE_MAX) {
+          const oldest = searchCache.keys().next().value;
+          if (oldest !== undefined) searchCache.delete(oldest);
+        }
+        searchCache.set(urlKey, nextResult);
         setSnapshot({
           key: urlKey,
           setup: false,
           error: null,
-          result: {
-            beatmapsets: data.beatmapsets ?? [],
-            cursor: data.cursor_string,
-            total: data.total ?? 0,
-            notice: typeof data.error === "string" ? data.error : null,
-          },
+          result: nextResult,
         });
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         if (requestId.current !== id) return;
-        setSnapshot({ key: urlKey, result: null, error: "Search failed.", setup: false });
+        if (!cached) {
+          setSnapshot({ key: urlKey, result: null, error: "Search failed.", setup: false });
+        }
       });
 
     return () => controller.abort();
@@ -226,7 +258,7 @@ export function SearchPage({ query }: { query: string }) {
     const missing = snapshot.result.beatmapsets
       .filter((beatmapset) => needsConvertRatings(beatmapset, mode, currentFilters.converts) && convertMapRef.current[beatmapset.id] === undefined)
       .map((beatmapset) => beatmapset.id)
-      .slice(0, 5);
+      .slice(0, 10);
     if (missing.length === 0) return;
 
     const controller = new AbortController();
@@ -237,13 +269,19 @@ export function SearchPage({ query }: { query: string }) {
         if (controller.signal.aborted) return;
         setConvertMap((current) => {
           const next = { ...current };
-          for (const id of missing) next[id] = response.ok ? (data.converts?.[String(id)] ?? []) : [];
+          for (const id of missing) next[id] = data.converts?.[String(id)] ?? [];
           return next;
         });
-        if (response.ok) setConvertPass((pass) => pass + 1);
+        setConvertPass((pass) => pass + 1);
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
+        setConvertMap((current) => {
+          const next = { ...current };
+          for (const id of missing) next[id] = [];
+          return next;
+        });
+        setConvertPass((pass) => pass + 1);
       });
 
     return () => controller.abort();
@@ -259,11 +297,16 @@ export function SearchPage({ query }: { query: string }) {
     const qs = filtersToSearchParams(next).toString();
     pendingWrite.current = qs;
     rememberSearch(qs);
+    setHistoryQuery(qs);
     router.replace(qs ? `/?${qs}` : "/", { scroll: false });
   }
 
   function commit(next: SearchFilters) {
-    if (timer.current) window.clearTimeout(timer.current);
+    if (timer.current) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+    setDebouncing(false);
     draftRef.current = next;
     setDraft(next);
     writeUrl(next);
@@ -272,18 +315,23 @@ export function SearchPage({ query }: { query: string }) {
   function commitSoon(next: SearchFilters) {
     draftRef.current = next;
     setDraft(next);
+    setDebouncing(true);
     if (timer.current) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => writeUrl(draftRef.current), 400);
+    timer.current = window.setTimeout(() => {
+      setDebouncing(false);
+      timer.current = null;
+      writeUrl(draftRef.current);
+    }, FILTER_DEBOUNCE_MS);
   }
 
-  function patch(partial: Partial<SearchFilters>, when: "now" | "soon") {
+  function patch(partial: Partial<SearchFilters>, when: "now" | "soon" = "soon") {
     const next = { ...draftRef.current, ...partial };
     if (when === "now") commit(next);
     else commitSoon(next);
   }
 
   async function loadMore() {
-    if (!result?.cursor || loadingMore) return;
+    if (!result?.cursor || loadingMore || debouncing) return;
     const id = requestId.current;
     const cursor = result.cursor;
     setLoadingMore(true);
@@ -304,14 +352,16 @@ export function SearchPage({ query }: { query: string }) {
         if (!current.result || current.key !== urlKey) return current;
         const seen = new Set(current.result.beatmapsets.map((beatmapset) => beatmapset.id));
         const more = (data.beatmapsets ?? []).filter((beatmapset) => !seen.has(beatmapset.id));
+        const nextResult: Result = {
+          ...current.result,
+          beatmapsets: [...current.result.beatmapsets, ...more],
+          cursor: data.cursor_string,
+        };
+        searchCache.set(urlKey, nextResult);
         return {
           ...current,
           error: null,
-          result: {
-            ...current.result,
-            beatmapsets: [...current.result.beatmapsets, ...more],
-            cursor: data.cursor_string,
-          },
+          result: nextResult,
         };
       });
     } catch {
@@ -329,53 +379,28 @@ export function SearchPage({ query }: { query: string }) {
   });
 
   useEffect(() => {
-    if (!autoLoadMore || !result?.cursor || loadingMore || loading) return;
-
-    let ticking = false;
-
-    const checkBottom = () => {
-      if (loadingMore || loading || !result?.cursor) return;
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const clientHeight = window.innerHeight;
-      const scrollHeight = document.documentElement.scrollHeight;
-
-      // Only trigger if user has scrolled down and actually reached the bottom (within 80px)
-      if (scrollTop > 100 && scrollTop + clientHeight >= scrollHeight - 80) {
-        loadMoreRef.current();
-      }
-    };
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          checkBottom();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
+    if (!autoLoadMore || !result?.cursor || loadingMore || loading || debouncing) return;
 
     const sentinel = sentinelRef.current;
-    let observer: IntersectionObserver | null = null;
-    if (sentinel) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          const first = entries[0];
-          if (first && first.isIntersecting) {
-            checkBottom();
-          }
-        },
-        { rootMargin: "0px", threshold: 0.1 },
-      );
-      observer.observe(sentinel);
-    }
+    if (!sentinel) return;
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (observer) observer.disconnect();
-    };
-  }, [autoLoadMore, result?.cursor, loadingMore, loading]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first?.isIntersecting && !loadingMore && !loading && !debouncing) {
+          loadMoreRef.current();
+        }
+      },
+      { rootMargin: "250px" },
+    );
+    observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [autoLoadMore, result?.cursor, loadingMore, loading, debouncing]);
+
+  const handleOpenDetails = useCallback((beatmapset: Beatmapset) => {
+    setDetailBeatmapset({ id: beatmapset.id, initial: beatmapset });
+  }, []);
 
   return (
     <div className="flex flex-col">
@@ -432,11 +457,11 @@ export function SearchPage({ query }: { query: string }) {
 
         {!setup && result?.notice ? <p className="text-sm text-muted">{result.notice}</p> : null}
 
-        {!setup && (loading || result) ? (
+        {!setup && (loading || result || debouncing) ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-mono text-sm tabular-nums text-muted">
               {loading && !result ? "Searching…" : `${(result?.total ?? 0).toLocaleString()} beatmaps`}
-              {loading && result ? " · updating" : ""}
+              {debouncing ? " · updating soon…" : loading && result ? " · updating" : ""}
             </p>
             {result?.cursor ? (
               <AutoLoadToggle checked={autoLoadMore} onChange={setAutoLoadStorage} />
@@ -450,14 +475,15 @@ export function SearchPage({ query }: { query: string }) {
 
         {!setup ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {(result?.beatmapsets ?? []).map((beatmapset) => (
+            {(result?.beatmapsets ?? []).map((beatmapset, index) => (
               <BeatmapCard
                 key={beatmapset.id}
                 beatmapset={beatmapset}
                 mode={committed.mode}
                 converts={convertMap[beatmapset.id]}
                 convertsFilter={committed.converts}
-                onOpenDetails={() => setDetailBeatmapset({ id: beatmapset.id, initial: beatmapset })}
+                onOpenDetails={handleOpenDetails}
+                priority={index < 3}
               />
             ))}
             {loading && !result

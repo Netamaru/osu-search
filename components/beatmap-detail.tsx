@@ -3,7 +3,7 @@ import { BeatmapCover } from "@/components/beatmap-cover";
 import { DifficultyChip } from "@/components/difficulty-chip";
 import { SearchBackLink } from "@/components/search-back-link";
 import { MODE_LABEL } from "@/lib/osu/constants";
-import { absoluteUrl, compactCount, formatLength, formatStatus } from "@/lib/format";
+import { absoluteUrl, compactCount, formatLength, formatShortDate, formatStatus, formatUtcDateTime } from "@/lib/format";
 import type { Beatmap, Beatmapset, Ruleset } from "@/lib/osu/types";
 
 const RULESETS: Ruleset[] = ["osu", "taiko", "fruits", "mania"];
@@ -39,10 +39,10 @@ export function BeatmapDetail({ beatmapset }: { beatmapset: Beatmapset }) {
             blurMode="always"
           />
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <p className="label">{formatStatus(beatmapset.status)}</p>
-          <h1 className="display text-4xl sm:text-5xl">{beatmapset.title}</h1>
-          <p className="text-lg text-muted">{beatmapset.artist}</p>
+          <h1 className="display text-4xl sm:text-5xl break-words [overflow-wrap:anywhere]">{beatmapset.title}</h1>
+          <p className="text-lg text-muted break-words [overflow-wrap:anywhere]">{beatmapset.artist}</p>
           <p className="font-mono text-sm text-faint">
             mapped by{" "}
             <a
@@ -67,6 +67,27 @@ export function BeatmapDetail({ beatmapset }: { beatmapset: Beatmapset }) {
                 <span className="px-1.5">·</span>
                 {Math.round(beatmapset.bpm)} BPM
               </>
+            ) : null}
+            {beatmapset.last_updated ? (
+              <span className="whitespace-nowrap">
+                <span className="px-1.5">·</span>
+                <span className="group/date relative pointer-events-auto inline-flex items-center cursor-help">
+                  <time
+                    dateTime={beatmapset.last_updated}
+                    title={formatUtcDateTime(beatmapset.last_updated)}
+                    suppressHydrationWarning
+                    className="hover:text-fg hover:underline underline-offset-2 transition-colors"
+                  >
+                    updated {formatShortDate(beatmapset.last_updated)}
+                  </time>
+                  <span
+                    role="tooltip"
+                    className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 z-30 mb-1.5 hidden w-max rounded-[2px] border border-line bg-slab px-2 py-1 font-mono text-[11px] font-medium leading-none text-on-slab shadow-lg group-hover/date:block group-focus-within/date:block"
+                  >
+                    {formatUtcDateTime(beatmapset.last_updated)}
+                  </span>
+                </span>
+              </span>
             ) : null}
           </p>
           {beatmapset.nsfw ? <p className="label text-accent">Explicit</p> : null}

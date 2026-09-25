@@ -2,8 +2,9 @@ import type { ClientCredentials } from "../credentials";
 import { getAccessToken, MissingCredentialsError } from "./token";
 
 const API = "https://osu.ppy.sh/api/v2";
-const CACHE_TTL_MS = 45_000;
-const MIN_INTERVAL_MS = 1000;
+const CACHE_TTL_MS = 60_000;
+const MIN_INTERVAL_MS = 300;
+const MAX_CACHE_ENTRIES = 300;
 
 type CacheEntry = {
   expires: number;
@@ -18,6 +19,20 @@ type Lane = {
 const cache = new Map<string, CacheEntry>();
 const inflight = new Map<string, Promise<unknown>>();
 const lanes = new Map<string, Lane>();
+
+function setCache(key: string, value: CacheEntry) {
+  if (cache.size >= MAX_CACHE_ENTRIES) {
+    const now = Date.now();
+    for (const [k, v] of cache) {
+      if (v.expires <= now) cache.delete(k);
+    }
+    if (cache.size >= MAX_CACHE_ENTRIES) {
+      const oldest = cache.keys().next().value;
+      if (oldest !== undefined) cache.delete(oldest);
+    }
+  }
+  cache.set(key, value);
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -96,7 +111,7 @@ export async function osuGet<T>(path: string, credentials: ClientCredentials, pa
 
   const request = fetchJson(url, credentials, false)
     .then((body) => {
-      cache.set(url, { expires: Date.now() + CACHE_TTL_MS, body });
+      setCache(url, { expires: Date.now() + CACHE_TTL_MS, body });
       return body as T;
     })
     .finally(() => {

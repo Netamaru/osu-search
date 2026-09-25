@@ -17,7 +17,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
   try {
     const beatmapset = await osuGet<Beatmapset>(`/beatmapsets/${id}`, resolved.credentials);
-    return NextResponse.json(beatmapset);
+    return NextResponse.json(beatmapset, {
+      headers: { "Cache-Control": "private, max-age=300, stale-while-revalidate=600" },
+    });
   } catch (error) {
     if (error instanceof MissingCredentialsError) {
       return NextResponse.json({ error: "missing_credentials", message: error.message }, { status: 503 });

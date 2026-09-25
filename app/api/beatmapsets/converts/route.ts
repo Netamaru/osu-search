@@ -5,9 +5,24 @@ import { credentialsFailure, resolveCredentials } from "@/lib/osu/request-creden
 import type { Beatmap, Beatmapset } from "@/lib/osu/types";
 
 const CACHE_TTL_MS = 30 * 60 * 1000;
-const MAX_IDS = 5;
+const MAX_CACHE_ENTRIES = 500;
+const MAX_IDS = 10;
 
 const cache = new Map<number, { expires: number; converts: Beatmap[] }>();
+
+function setCache(id: number, value: { expires: number; converts: Beatmap[] }) {
+  if (cache.size >= MAX_CACHE_ENTRIES) {
+    const now = Date.now();
+    for (const [k, v] of cache) {
+      if (v.expires <= now) cache.delete(k);
+    }
+    if (cache.size >= MAX_CACHE_ENTRIES) {
+      const oldest = cache.keys().next().value;
+      if (oldest !== undefined) cache.delete(oldest);
+    }
+  }
+  cache.set(id, value);
+}
 
 async function convertsFor(id: number, credentials: ClientCredentials): Promise<Beatmap[]> {
   const hit = cache.get(id);
@@ -16,14 +31,11 @@ async function convertsFor(id: number, credentials: ClientCredentials): Promise<
   try {
     const beatmapset = await osuGet<Beatmapset>(`/beatmapsets/${id}`, credentials);
     const converts = beatmapset.converts ?? [];
-    cache.set(id, { expires: Date.now() + CACHE_TTL_MS, converts });
+    setCache(id, { expires: Date.now() + CACHE_TTL_MS, converts });
     return converts;
-  } catch (error) {
-    if (error instanceof OsuApiError && error.status === 404) {
-      cache.set(id, { expires: Date.now() + CACHE_TTL_MS, converts: [] });
-      return [];
-    }
-    throw error;
+  } catch {
+    setCache(id, { expires: Date.now() + 60_000, converts: [] });
+    return [];
   }
 }
 
@@ -44,14 +56,21 @@ export async function GET(request: Request) {
   }
 
   try {
+    const results = await Promise.all(
+      ids.map(async (id) => ({
+        id,
+        converts: await convertsFor(id, resolved.credentials),
+      })),
+    );
     const converts: Record<number, Beatmap[]> = {};
-    for (const id of ids) {
-      converts[id] = await convertsFor(id, resolved.credentials);
+    for (const { id, converts: setConverts } of results) {
+      converts[id] = setConverts;
     }
-    return NextResponse.json({ converts });
-  } catch (error) {
-    const message = error instanceof OsuApiError ? error.message : "Could not load convert star ratings.";
-    const status = error instanceof OsuApiError ? error.status : 502;
-    return NextResponse.json({ error: "osu", message }, { status });
+    return NextResponse.json(
+      { converts },
+      { headers: { "Cache-Control": "private, max-age=1800, stale-while-revalidate=3600" } },
+    );
+  } catch {
+    return NextResponse.json({ converts: {} });
   }
 }

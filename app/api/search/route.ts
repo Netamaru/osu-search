@@ -26,7 +26,9 @@ export async function GET(request: Request) {
       if (data.beatmapsets) {
         data.beatmapsets = applyIncludeFilters(data.beatmapsets, filters);
       }
-      return NextResponse.json(data);
+      return NextResponse.json(data, {
+        headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=120" },
+      });
     }
 
     const cursors = parseStatusCursors(incoming.get("cursor"), statuses);
@@ -45,7 +47,9 @@ export async function GET(request: Request) {
         return { status, ...data };
       }),
     );
-    return NextResponse.json(mergeSearchPages(pages, filters.sort));
+    return NextResponse.json(mergeSearchPages(pages, filters.sort), {
+      headers: { "Cache-Control": "private, max-age=60, stale-while-revalidate=120" },
+    });
   } catch (error) {
     if (error instanceof MissingCredentialsError) {
       return NextResponse.json({ error: "missing_credentials", message: error.message }, { status: 503 });

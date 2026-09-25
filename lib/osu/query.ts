@@ -1,4 +1,4 @@
-import { isMode, isSort } from "./constants";
+import { GENRES, isMode, isSort, LANGUAGES } from "./constants";
 import { defaultFilters, normalizeStatuses } from "./filters";
 import type { SearchFilters, SearchStatus } from "./types";
 
@@ -115,10 +115,51 @@ export function compileOsuParams(
 }
 
 export function formatOsuQuery(filters: SearchFilters): string {
-  const statuses = filters.status.length > 0 ? filters.status : (["leaderboard"] as const);
-  return statuses
-    .map((status) => [...compileOsuParams(filters, status).entries()].map(([key, value]) => `${key}=${value}`).join("\n"))
-    .join("\n\n");
+  const lines: string[] = [];
+  const q = buildQuery(filters);
+  if (q) lines.push(`q=${q}`);
+
+  if (filters.mode) {
+    lines.push(`m=${filters.mode}`);
+  }
+
+  if (filters.status.length > 0) {
+    lines.push(`s=${filters.status.join(",")}`);
+  }
+
+  if (filters.sort) {
+    lines.push(`sort=${filters.sort}`);
+  }
+
+  if (filters.genre) {
+    lines.push(`genre=${filters.genre}`);
+  }
+
+  if (filters.language) {
+    lines.push(`language=${filters.language}`);
+  }
+
+  if (filters.video !== "any") {
+    lines.push(`video=${filters.video}`);
+  }
+
+  if (filters.storyboard !== "any") {
+    lines.push(`storyboard=${filters.storyboard}`);
+  }
+
+  if (filters.featuredArtist !== "any") {
+    lines.push(`featured_artists=${filters.featuredArtist}`);
+  }
+
+  if (filters.converts !== "any") {
+    lines.push(`converts=${filters.converts}`);
+  }
+
+  if (filters.nsfw !== "exclude") {
+    lines.push(`nsfw=${filters.nsfw}`);
+  }
+
+  return lines.join("\n");
 }
 
 function unquote(value: string): string {
@@ -128,14 +169,42 @@ function unquote(value: string): string {
   return value;
 }
 
-function parseQueryTokens(queryStr: string, filters: SearchFilters) {
-  const tokenRegex = /([a-zA-Z]+(?:>=|<=|>|<|=))(?:"(?:[^"\\]|\\.)*"|[^\s]+)|(?:"(?:[^"\\]|\\.)*"|[^\s]+)/g;
+function parseMode(val: string): "" | "0" | "1" | "2" | "3" {
+  const modeVal = val.toLowerCase().trim();
+  if (modeVal === "0" || modeVal === "osu" || modeVal === "osu!") return "0";
+  if (modeVal === "1" || modeVal === "taiko") return "1";
+  if (modeVal === "2" || modeVal === "fruits" || modeVal === "catch" || modeVal === "ctb") return "2";
+  if (modeVal === "3" || modeVal === "mania") return "3";
+  if (isMode(modeVal)) return modeVal;
+  return "";
+}
+
+function parseGenre(val: string): string {
+  const trimmed = val.trim().toLowerCase();
+  if (/^\d+$/.test(trimmed)) {
+    if (GENRES.some((g) => g.id === trimmed)) return trimmed;
+  }
+  const found = GENRES.find((g) => g.label.toLowerCase() === trimmed);
+  return found ? found.id : "";
+}
+
+function parseLanguage(val: string): string {
+  const trimmed = val.trim().toLowerCase();
+  if (/^\d+$/.test(trimmed)) {
+    if (LANGUAGES.some((l) => l.id === trimmed)) return trimmed;
+  }
+  const found = LANGUAGES.find((l) => l.label.toLowerCase() === trimmed);
+  return found ? found.id : "";
+}
+
+function parseQueryTokens(queryStr: string, filters: SearchFilters, statuses?: string[]) {
+  const tokenRegex = /([a-zA-Z_]+(?:>=|<=|>|<|=))(?:"(?:[^"\\]|\\.)*"|[^\s]+)|(?:"(?:[^"\\]|\\.)*"|[^\s]+)/g;
   const keywords: string[] = filters.q ? [filters.q] : [];
 
   let match: RegExpExecArray | null;
   while ((match = tokenRegex.exec(queryStr)) !== null) {
     const token = match[0];
-    const opMatch = token.match(/^([a-zA-Z]+)(>=|<=|>|<|=)(.*)$/);
+    const opMatch = token.match(/^([a-zA-Z_]+)(>=|<=|>|<|=)(.*)$/);
     if (opMatch) {
       const key = opMatch[1].toLowerCase();
       const op = opMatch[2];
@@ -232,6 +301,88 @@ function parseQueryTokens(queryStr: string, filters: SearchFilters) {
           filters.updated = rawVal;
           if (op === "=" || op === "<=" || op === ">=") filters.updatedOp = op;
           break;
+        case "m":
+        case "mode":
+          filters.mode = parseMode(rawVal);
+          break;
+        case "s":
+        case "status": {
+          const parts = rawVal.split(/[,+\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean);
+          if (statuses) statuses.push(...parts);
+          else {
+            const parsed = normalizeStatuses(parts);
+            if (parsed.length > 0) filters.status = parsed;
+          }
+          break;
+        }
+        case "sort":
+          if (isSort(rawVal) || rawVal === "") filters.sort = rawVal;
+          break;
+        case "g":
+        case "genre":
+          filters.genre = parseGenre(rawVal);
+          break;
+        case "l":
+        case "language":
+          filters.language = parseLanguage(rawVal);
+          break;
+        case "video":
+          if (rawVal === "only" || rawVal === "1" || rawVal.toLowerCase() === "true") filters.video = "only";
+          else if (rawVal === "exclude" || rawVal === "0" || rawVal.toLowerCase() === "false") filters.video = "exclude";
+          else filters.video = "any";
+          break;
+        case "storyboard":
+          if (rawVal === "only" || rawVal === "1" || rawVal.toLowerCase() === "true") filters.storyboard = "only";
+          else if (rawVal === "exclude" || rawVal === "0" || rawVal.toLowerCase() === "false") filters.storyboard = "exclude";
+          else filters.storyboard = "any";
+          break;
+        case "converts":
+          if (rawVal === "only" || rawVal === "1" || rawVal.toLowerCase() === "true") filters.converts = "only";
+          else if (rawVal === "exclude" || rawVal === "0" || rawVal.toLowerCase() === "false") filters.converts = "exclude";
+          else filters.converts = "any";
+          break;
+        case "featuredartist":
+        case "featured_artists":
+        case "featured_artist":
+          if (rawVal === "only" || rawVal === "1" || rawVal.toLowerCase() === "true") filters.featuredArtist = "only";
+          else if (rawVal === "exclude" || rawVal === "0" || rawVal.toLowerCase() === "false") filters.featuredArtist = "exclude";
+          else filters.featuredArtist = "any";
+          break;
+        case "nsfw":
+          if (rawVal === "only") filters.nsfw = "only";
+          else if (rawVal === "1" || rawVal.toLowerCase() === "true" || rawVal.toLowerCase() === "any") filters.nsfw = "any";
+          else filters.nsfw = "exclude";
+          break;
+        case "e":
+        case "extra": {
+          const extras = rawVal.split(/[.+]/).map((x) => x.trim().toLowerCase());
+          if (extras.includes("video")) filters.video = "only";
+          if (extras.includes("storyboard")) filters.storyboard = "only";
+          break;
+        }
+        case "c":
+        case "general": {
+          const generals = rawVal.split(/[.+]/).map((x) => x.trim().toLowerCase());
+          if (generals.includes("converts")) filters.converts = "only";
+          if (generals.includes("featured_artists") || generals.includes("featuredartists")) filters.featuredArtist = "only";
+          break;
+        }
+        case "starsmin": filters.starsMin = rawVal; break;
+        case "starsmax": filters.starsMax = rawVal; break;
+        case "armin": filters.arMin = rawVal; break;
+        case "armax": filters.arMax = rawVal; break;
+        case "csmin": filters.csMin = rawVal; break;
+        case "csmax": filters.csMax = rawVal; break;
+        case "odmin": filters.odMin = rawVal; break;
+        case "odmax": filters.odMax = rawVal; break;
+        case "hpmin": filters.hpMin = rawVal; break;
+        case "hpmax": filters.hpMax = rawVal; break;
+        case "bpmmin": filters.bpmMin = rawVal; break;
+        case "bpmmax": filters.bpmMax = rawVal; break;
+        case "lengthmin": filters.lengthMin = rawVal; break;
+        case "lengthmax": filters.lengthMax = rawVal; break;
+        case "keysmin": filters.keysMin = rawVal; break;
+        case "keysmax": filters.keysMax = rawVal; break;
         default:
           keywords.push(token);
           break;
@@ -315,22 +466,15 @@ export function parseOsuQuery(raw: string, base?: SearchFilters): SearchFilters 
       switch (key) {
         case "q":
           filters.q = "";
-          parseQueryTokens(val, filters);
+          parseQueryTokens(val, filters, statuses);
           break;
         case "m":
-        case "mode": {
-          const modeVal = val.toLowerCase();
-          if (modeVal === "0" || modeVal === "osu") filters.mode = "0";
-          else if (modeVal === "1" || modeVal === "taiko") filters.mode = "1";
-          else if (modeVal === "2" || modeVal === "fruits" || modeVal === "catch") filters.mode = "2";
-          else if (modeVal === "3" || modeVal === "mania") filters.mode = "3";
-          else if (isMode(val)) filters.mode = val;
-          else if (modeVal === "" || modeVal === "any") filters.mode = "";
+        case "mode":
+          filters.mode = parseMode(val);
           break;
-        }
         case "s":
         case "status": {
-          const parts = val.split(/[,+]/).map((s) => s.trim().toLowerCase());
+          const parts = val.split(/[,+\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean);
           statuses.push(...parts);
           break;
         }
@@ -340,11 +484,11 @@ export function parseOsuQuery(raw: string, base?: SearchFilters): SearchFilters 
           break;
         case "g":
         case "genre":
-          filters.genre = /^\d+$/.test(val) ? val : "";
+          filters.genre = parseGenre(val);
           break;
         case "l":
         case "language":
-          filters.language = /^\d+$/.test(val) ? val : "";
+          filters.language = parseLanguage(val);
           break;
         case "nsfw":
           if (val === "only") filters.nsfw = "only";
@@ -417,7 +561,7 @@ export function parseOsuQuery(raw: string, base?: SearchFilters): SearchFilters 
           break;
       }
     } else {
-      parseQueryTokens(line, filters);
+      parseQueryTokens(line, filters, statuses);
     }
   }
 

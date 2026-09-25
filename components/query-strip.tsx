@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { formatOsuQuery, parseOsuQuery } from "@/lib/osu/query";
 import type { SearchFilters } from "@/lib/osu/types";
 
@@ -138,7 +138,7 @@ export function QueryStrip({
   );
 }
 
-const TOKEN_REGEX = /(\s+)|([a-zA-Z]+(?:>=|<=|>|<|=)(?:"(?:[^"\\]|\\.)*"|[^\s]+))|("(?:[^"\\]|\\.)*"|[^\s]+)/g;
+const TOKEN_REGEX = /(\s+)|([a-zA-Z_]+(?:>=|<=|>|<|=)(?:"(?:[^"\\]|\\.)*"|[^\s]+))|("(?:[^"\\]|\\.)*"|[^\s]+)/g;
 
 function renderQueryTokens(val: string) {
   const elements: React.ReactNode[] = [];
@@ -156,7 +156,7 @@ function renderQueryTokens(val: string) {
     }
 
     if (filterToken) {
-      const opMatch = filterToken.match(/^([a-zA-Z]+)(>=|<=|>|<|=)(.*)$/);
+      const opMatch = filterToken.match(/^([a-zA-Z_]+)(>=|<=|>|<|=)(.*)$/);
       if (opMatch) {
         const [, fKey, op, fVal] = opMatch;
         const isNumOrDate = /^-?\d+(\.\d+)?$/.test(fVal) || /^\d{4}-\d{2}-\d{2}$/.test(fVal);
@@ -192,43 +192,71 @@ function renderQueryTokens(val: string) {
 }
 
 function renderParamValue(key: string, val: string) {
-  if (key === "q") {
+  const lowerKey = key.toLowerCase();
+
+  if (lowerKey === "q") {
     return renderQueryTokens(val);
   }
 
-  if (key === "s") {
+  if (lowerKey === "s" || lowerKey === "status") {
     return <span className="font-medium text-pink-600 dark:text-pink-400">{val}</span>;
   }
 
-  if (key === "m" || key === "g" || key === "l") {
+  if (
+    lowerKey === "m" ||
+    lowerKey === "mode" ||
+    lowerKey === "g" ||
+    lowerKey === "genre" ||
+    lowerKey === "l" ||
+    lowerKey === "language"
+  ) {
     return <span className="font-mono font-medium text-amber-600 dark:text-amber-400">{val}</span>;
   }
 
-  if (key === "sort") {
+  if (lowerKey === "sort") {
     return <span className="font-medium text-indigo-600 dark:text-indigo-400">{val}</span>;
   }
 
-  if (key === "c" || key === "e") {
+  if (
+    lowerKey === "c" ||
+    lowerKey === "e" ||
+    lowerKey === "video" ||
+    lowerKey === "storyboard" ||
+    lowerKey === "converts" ||
+    lowerKey === "featured_artists" ||
+    lowerKey === "featured_artist" ||
+    lowerKey === "featuredartist"
+  ) {
+    const isExclude = val.toLowerCase() === "exclude" || val === "0" || val.toLowerCase() === "false";
+    const isOnly = val.toLowerCase() === "only" || val === "1" || val.toLowerCase() === "true";
+    const colorClass = isExclude
+      ? "font-medium text-rose-600 dark:text-rose-400"
+      : isOnly
+      ? "font-medium text-teal-600 dark:text-teal-400"
+      : "font-medium text-muted";
+
     const parts = val.split(".");
     return (
-      <>
+      <span className={colorClass}>
         {parts.map((part, idx) => (
           <span key={idx}>
             {idx > 0 ? <span className="text-faint">.</span> : null}
-            <span className="font-medium text-teal-600 dark:text-teal-400">{part}</span>
+            <span>{part}</span>
           </span>
         ))}
-      </>
+      </span>
     );
   }
 
-  if (key === "nsfw") {
-    const isTrue = val.toLowerCase() === "true" || val === "1";
-    return (
-      <span className={isTrue ? "font-medium text-rose-600 dark:text-rose-400" : "font-medium text-faint"}>
-        {val}
-      </span>
-    );
+  if (lowerKey === "nsfw") {
+    const isExclude = val.toLowerCase() === "exclude" || val === "false" || val === "0";
+    const isOnly = val.toLowerCase() === "only";
+    const colorClass = isOnly
+      ? "font-medium text-rose-600 dark:text-rose-400"
+      : isExclude
+      ? "font-medium text-faint"
+      : "font-medium text-amber-600 dark:text-amber-400";
+    return <span className={colorClass}>{val}</span>;
   }
 
   return <span className="text-fg-muted dark:text-muted">{val}</span>;
@@ -254,7 +282,7 @@ function renderLine(line: string) {
   );
 }
 
-function HighlightedQuery({ query }: { query: string }) {
+const HighlightedQuery = memo(function HighlightedQuery({ query }: { query: string }) {
   const lines = query.split("\n");
   return (
     <pre className="overflow-x-auto px-4 py-3 font-mono text-[13px] leading-6 text-fg">
@@ -265,4 +293,4 @@ function HighlightedQuery({ query }: { query: string }) {
       ))}
     </pre>
   );
-}
+});

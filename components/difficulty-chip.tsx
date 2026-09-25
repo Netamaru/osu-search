@@ -25,10 +25,10 @@ export function DifficultyChip({
     return (
       <span
         title={tooltip ? undefined : `${name} (calculating converted stars...)`}
-        className="group/chip relative inline-flex shrink-0 items-center gap-1.5 rounded-[2px] border border-line-strong/25 border-dashed bg-code px-1.5 py-0.5 font-mono text-[11px] leading-none font-medium text-faint hover:z-20 shadow-xs"
+        className="group/chip relative inline-flex h-[20px] min-w-[58px] box-border shrink-0 items-center gap-1 rounded-[2px] border border-line-strong/30 border-dashed bg-code px-1.5 font-mono text-[11px] leading-none font-medium text-faint hover:z-20 shadow-xs"
       >
         <ModeIcon mode={mode} />
-        <span className="inline-flex items-center text-[9px] tracking-widest text-faint" aria-label="Calculating">
+        <span className="inline-flex flex-1 items-center justify-center text-[9px] tracking-widest text-faint [overflow-anchor:none]" aria-label="Calculating">
           <span className="animate-pulse">·</span>
           <span className="animate-pulse [animation-delay:150ms]">·</span>
           <span className="animate-pulse [animation-delay:300ms]">·</span>
@@ -50,7 +50,7 @@ export function DifficultyChip({
     return (
       <span
         title={tooltip ? undefined : name}
-        className="group/chip relative inline-flex shrink-0 items-center gap-1 rounded-[2px] px-1.5 py-0.5 font-mono text-[11px] leading-none font-medium hover:z-20"
+        className="group/chip relative inline-flex h-[20px] min-w-[58px] box-border shrink-0 items-center gap-1 rounded-[2px] border border-transparent px-1.5 font-mono text-[11px] leading-none font-medium hover:z-20"
         style={style}
       >
         <ModeIcon mode={mode} />

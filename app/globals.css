@@ -189,10 +189,15 @@ body {
   font-weight: 600;
 }
 
+#results {
+  overflow-anchor: auto;
+}
+
 .card {
   border: 1px solid rgb(var(--c-line));
   border-radius: 4px;
   background: rgb(var(--c-canvas));
+  overflow-anchor: auto;
 }
 
 .card-link:hover {
