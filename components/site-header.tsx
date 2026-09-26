@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ApiClientButton } from "@/components/credentials-provider";
 import { ChangelogModal } from "@/components/changelog-modal";
 import { SearchBackLink } from "@/components/search-back-link";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
   const [changelogOpen, setChangelogOpen] = useState(false);
@@ -26,9 +27,7 @@ export function SiteHeader() {
               Changelog
             </button>
             <span className="mx-3.5 h-4 w-px bg-line" aria-hidden="true" />
-            <a className="label hover:text-fg" href="https://osu.ppy.sh/beatmapsets">
-              osu! beatmaps
-            </a>
+            <ThemeToggle />
           </div>
         </div>
       </header>

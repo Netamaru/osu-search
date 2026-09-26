@@ -76,13 +76,13 @@ function AutoLoadToggle({
       title="Automatically load more beatmaps when scrolling near the bottom"
     >
       <span
-        className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border transition-colors ${
+        className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-[2px] border transition-colors ${
           checked ? "border-accent bg-accent" : "border-line bg-subtle"
         }`}
       >
         <span
-          className={`inline-block h-2.5 w-2.5 rounded-full bg-white transition-transform ${
-            checked ? "translate-x-3.5" : "translate-x-0.5"
+          className={`inline-block h-2.5 w-2.5 rounded-[1px] transition-all duration-200 ${
+            checked ? "translate-x-3.5 bg-white" : "translate-x-0.5 bg-fg"
           }`}
         />
       </span>

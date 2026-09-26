@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId } from "react";
+import { CloseIcon } from "@/components/icons";
 
 type ChangeType = "feat" | "improve" | "fix";
 
@@ -20,17 +21,85 @@ type ChangelogEntry = {
 
 const CHANGELOG_DATA: ChangelogEntry[] = [
   {
-    version: "v1.3.0",
+    version: "v1.4.0",
     date: "Latest",
     badge: "Current",
+    highlights:
+      "Custom music player with volume memory, card frosted glass & micro-interactions, live extra difficulty preview, and beatmap detail redesign.",
+    changes: [
+      {
+        type: "feat",
+        title: "Custom Brutalist Music Player with Volume Memory",
+        description:
+          "Replaced native browser audio controls with a custom player featuring persistent volume/mute memory in localStorage (defaulting safely to 50%), live 3-bar animated sound equalizer, interactive drag-and-click scrub bar, and single-active playback management.",
+      },
+      {
+        type: "feat",
+        title: "Frosted Glass Cover Badges & Micro-Interactions",
+        description:
+          "Upgraded card badges to semi-transparent frosted glass, relocated song length badge to bottom-right corner, merged plays & favourites into a sleek horizontal pill, and added subtle cover image zoom with ambient hot-pink card hover glow.",
+      },
+      {
+        type: "feat",
+        title: "Live Stats Panel for More Difficulties Popover",
+        description:
+          "Scoped scroll containment inside the difficulty popover to eliminate tooltip clipping, adding a live difficulty stats panel that displays real-time AR, CS, HP, OD, BPM, Length, and Combo when hovering any difficulty chip or row.",
+      },
+      {
+        type: "feat",
+        title: "Enhanced Beatmap Detail & Table Icons",
+        description:
+          "Transformed metadata text in detail views into clean, self-contained pill tags with dedicated vector icons (User, Play, Heart, Note, Calendar), added icons to difficulty table headers (Stars, BPM, Length, Combo), and highlighted difficulty ratings with colored star badges.",
+      },
+      {
+        type: "improve",
+        title: "Primary CTA Hierarchy & Action Labels",
+        description:
+          "Transformed osu!direct into the primary call-to-action with vibrant signature hot-pink accent styling, and streamlined action button labels to 'Details' to prevent awkward line breaks.",
+      },
+      {
+        type: "improve",
+        title: "De-duplication in Detail Views",
+        description:
+          "Removed redundant overlay badges from detail cover banners to keep artwork completely clean and unobstructed, and streamlined music player labels to avoid repeating song titles already featured in the main header.",
+      },
+      {
+        type: "improve",
+        title: "Dead Code & Asset Consolidation",
+        description:
+          "Purged obsolete formatting functions, eliminated redundant local SVG icon definitions across components into a centralized @/components/icons module, and cleaned up unused CSS variables.",
+      },
+    ],
+  },
+  {
+    version: "v1.3.0",
+    date: "September 2026",
     highlights:
       "Card redesign, layout shift elimination, advanced filter query sync, and stability improvements.",
     changes: [
       {
         type: "feat",
+        title: "Mode & Status Filter Icons & Brutalist Buttons",
+        description:
+          "Added official pixel art and SVG icons to all Mode and Status filter options, and unified their shape with the site's brutalist technical theme by replacing 999px pills with rounded-[2px] buttons.",
+      },
+      {
+        type: "feat",
+        title: "Dark Mode Switch Button in Navbar",
+        description:
+          "Replaced the external osu! beatmaps link in the header with a theme switch button featuring smooth transitions, sun/moon icons, accessibility attributes, and persistent localStorage sync.",
+      },
+      {
+        type: "feat",
+        title: "Interactive Difficulty Stat Preview Tooltip",
+        description:
+          "Hovering any difficulty chip now reveals a rich pop-up preview with star rating, themed stat bars for CS, AR, OD, HP, and bottom stats for BPM, duration, and max combo with an authentic hitcircle combo icon. Hovering also dynamically updates the card's duration badge to that difficulty's specific length.",
+      },
+      {
+        type: "feat",
         title: "Beatmap Card Status & Stats Redesign",
         description:
-          "Relocated beatmap status badge to the top-left and added play count & favourites badges with crisp play and heart icons to the top-right over the cover.",
+          "Relocated beatmap status badge to the top-left with dynamic beatmap duration (supporting multi-length ranges and difficulty hover preview) directly below, and added play count & favourites badges to the top-right over the cover.",
       },
       {
         type: "feat",
@@ -176,14 +245,6 @@ const CHANGELOG_DATA: ChangelogEntry[] = [
     ],
   },
 ];
-
-function CloseIcon({ className }: { className: string }) {
-  return (
-    <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="none">
-      <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function TypeBadge({ type }: { type: ChangeType }) {
   switch (type) {

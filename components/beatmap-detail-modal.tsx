@@ -5,9 +5,12 @@ import { BeatmapActions } from "@/components/beatmap-actions";
 import { BeatmapCover } from "@/components/beatmap-cover";
 import { DifficultyChip } from "@/components/difficulty-chip";
 import { useCredentials } from "@/components/credentials-provider";
+import { ModeIcon } from "@/components/mode-icon";
+import { MusicPlayer } from "@/components/music-player";
 import { SetupNotice } from "@/components/setup-notice";
+import { CalendarIcon, ClockIcon, CloseIcon, ComboIcon, ExternalIcon, HeartIcon, NoteIcon, PlayIcon, StarIcon, UserIcon } from "@/components/icons";
 import { MODE_LABEL } from "@/lib/osu/constants";
-import { absoluteUrl, compactCount, formatLength, formatShortDate, formatStatus, formatUtcDateTime } from "@/lib/format";
+import { absoluteUrl, compactCount, difficultyColor, difficultyTextColor, formatDate, formatLength, formatStatus, formatUtcDateTime, statusIcon } from "@/lib/format";
 import type { Beatmap, Beatmapset, Ruleset } from "@/lib/osu/types";
 
 const RULESETS: Ruleset[] = ["osu", "taiko", "fruits", "mania"];
@@ -19,24 +22,6 @@ function grouped(beatmaps: Beatmap[]) {
       .filter((beatmap) => beatmap.mode === mode && !beatmap.deleted_at)
       .sort((a, b) => Number(a.convert) - Number(b.convert) || a.difficulty_rating - b.difficulty_rating),
   })).filter((group) => group.beatmaps.length > 0);
-}
-
-function CloseIcon({ className }: { className: string }) {
-  return (
-    <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="none">
-      <path d="m3.5 3.5 9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ExternalIcon({ className }: { className: string }) {
-  return (
-    <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="none">
-      <path d="M6.5 3H3.8A1.8 1.8 0 0 0 2 4.8v7.4A1.8 1.8 0 0 0 3.8 14h7.4a1.8 1.8 0 0 0 1.8-1.8V9.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M9 2h5v5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M14 2 7.5 8.5" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
 }
 
 type ModalState =
@@ -226,71 +211,94 @@ export function BeatmapDetailModal({
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-4">
-                  <p className="label">{formatStatus(activeBeatmapset.status)}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-[2px] border border-line bg-subtle px-2 py-0.5 font-mono text-xs font-semibold text-fg tracking-wide uppercase shadow-xs">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={statusIcon(activeBeatmapset.status)}
+                        alt=""
+                        className="h-3.5 w-auto shrink-0 object-contain"
+                      />
+                      <span>{formatStatus(activeBeatmapset.status)}</span>
+                    </span>
+                    {activeBeatmapset.nsfw ? (
+                      <span className="rounded-[2px] border border-red-500/30 bg-red-950/70 px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-red-200 uppercase shadow-xs">
+                        Explicit
+                      </span>
+                    ) : null}
+                  </div>
+
                   <div className="min-w-0">
                     <h2 id={titleId} className="display text-3xl sm:text-4xl break-words [overflow-wrap:anywhere]">
                       {activeBeatmapset.title}
                     </h2>
                     <p className="mt-1 text-base text-muted break-words [overflow-wrap:anywhere]">{activeBeatmapset.artist}</p>
                   </div>
-                  <p className="font-mono text-xs text-faint">
-                    mapped by{" "}
-                    <a
-                      href={
-                        activeBeatmapset.user_id
-                          ? `https://osu.ppy.sh/users/${activeBeatmapset.user_id}`
-                          : `https://osu.ppy.sh/users/${encodeURIComponent(activeBeatmapset.creator)}`
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-faint hover:text-fg hover:underline underline-offset-2 transition-colors"
-                      title={`View ${activeBeatmapset.creator}'s profile on osu!`}
-                    >
-                      {activeBeatmapset.creator}
-                    </a>
-                    <span className="px-1.5">·</span>
-                    {compactCount(activeBeatmapset.play_count)} plays
-                    <span className="px-1.5">·</span>
-                    {compactCount(activeBeatmapset.favourite_count)} fav
+
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                    <span className="inline-flex items-center gap-1.5 rounded-[2px] border border-line bg-subtle px-2 py-1 text-faint">
+                      <UserIcon className="h-3.5 w-3.5 shrink-0 text-faint" />
+                      <span>mapped by</span>
+                      <a
+                        href={
+                          activeBeatmapset.user_id
+                            ? `https://osu.ppy.sh/users/${activeBeatmapset.user_id}`
+                            : `https://osu.ppy.sh/users/${encodeURIComponent(activeBeatmapset.creator)}`
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-medium text-fg hover:text-accent hover:underline underline-offset-2 transition-colors"
+                        title={`View ${activeBeatmapset.creator}'s profile on osu!`}
+                      >
+                        {activeBeatmapset.creator}
+                      </a>
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5 rounded-[2px] border border-line bg-subtle px-2 py-1 text-faint" title={`${activeBeatmapset.play_count.toLocaleString()} plays`}>
+                      <PlayIcon className="h-3 w-3 text-faint" />
+                      <span className="font-semibold text-fg tabular-nums">{compactCount(activeBeatmapset.play_count)}</span>
+                      <span>plays</span>
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5 rounded-[2px] border border-line bg-subtle px-2 py-1 text-faint" title={`${activeBeatmapset.favourite_count.toLocaleString()} favourites`}>
+                      <HeartIcon className="h-3 w-3 text-accent" />
+                      <span className="font-semibold text-fg tabular-nums">{compactCount(activeBeatmapset.favourite_count)}</span>
+                      <span>fav</span>
+                    </span>
+
                     {activeBeatmapset.bpm ? (
-                      <>
-                        <span className="px-1.5">·</span>
-                        {Math.round(activeBeatmapset.bpm)} BPM
-                      </>
+                      <span className="inline-flex items-center gap-1.5 rounded-[2px] border border-line bg-subtle px-2 py-1 text-faint">
+                        <NoteIcon className="h-3 w-3 text-faint" />
+                        <span className="font-semibold text-fg tabular-nums">{Math.round(activeBeatmapset.bpm)}</span>
+                        <span>BPM</span>
+                      </span>
                     ) : null}
+
                     {activeBeatmapset.last_updated ? (
-                      <span className="whitespace-nowrap">
-                        <span className="px-1.5">·</span>
-                        <span className="group/date relative pointer-events-auto inline-flex items-center cursor-help">
-                          <time
-                            dateTime={activeBeatmapset.last_updated}
-                            title={formatUtcDateTime(activeBeatmapset.last_updated)}
-                            suppressHydrationWarning
-                            className="hover:text-fg hover:underline underline-offset-2 transition-colors"
-                          >
-                            updated {formatShortDate(activeBeatmapset.last_updated)}
-                          </time>
-                          <span
-                            role="tooltip"
-                            className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 z-30 mb-1.5 hidden w-max rounded-[2px] border border-line bg-slab px-2 py-1 font-mono text-[11px] font-medium leading-none text-on-slab shadow-lg group-hover/date:block group-focus-within/date:block"
-                          >
-                            {formatUtcDateTime(activeBeatmapset.last_updated)}
-                          </span>
+                      <span className="group/date relative inline-flex items-center gap-1.5 rounded-[2px] border border-line bg-subtle px-2 py-1 text-faint cursor-help">
+                        <CalendarIcon className="h-3.5 w-3.5 text-faint" />
+                        <time
+                          dateTime={activeBeatmapset.last_updated}
+                          title={formatUtcDateTime(activeBeatmapset.last_updated)}
+                          suppressHydrationWarning
+                          className="font-medium text-fg hover:underline underline-offset-2 transition-colors"
+                        >
+                          updated {formatDate(activeBeatmapset.last_updated)}
+                        </time>
+                        <span
+                          role="tooltip"
+                          className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 z-30 mb-1.5 hidden w-max rounded-[2px] border border-line bg-slab px-2 py-1 font-mono text-[11px] font-medium leading-none text-on-slab shadow-lg group-hover/date:block group-focus-within/date:block"
+                        >
+                          {formatUtcDateTime(activeBeatmapset.last_updated)}
                         </span>
                       </span>
                     ) : null}
-                  </p>
-                  {activeBeatmapset.nsfw ? <p className="label text-accent">Explicit</p> : null}
+                  </div>
 
                   {activeBeatmapset.preview_url ? (
-                    <audio
-                      className="w-full"
-                      controls
-                      preload="none"
+                    <MusicPlayer
                       src={absoluteUrl(activeBeatmapset.preview_url)}
-                    >
-                      Preview
-                    </audio>
+                    />
                   ) : null}
 
                   <BeatmapActions id={activeBeatmapset.id} />
@@ -308,37 +316,74 @@ export function BeatmapDetailModal({
 
                 {groups.map((group) => (
                   <div key={group.mode} className="flex flex-col gap-2.5">
-                    <h3 className="label">{MODE_LABEL[group.mode]}</h3>
+                    <h3 className="label inline-flex items-center gap-1.5">
+                      <ModeIcon mode={group.mode} className="h-3.5 w-3.5" />
+                      <span>{MODE_LABEL[group.mode]}</span>
+                    </h3>
                     <div className="overflow-x-auto border border-line">
                       <table className="w-full min-w-[44rem] border-collapse text-left text-sm">
                         <thead className="bg-subtle font-mono text-[11px] tracking-wide text-faint uppercase">
                           <tr>
                             <th className="px-3 py-2 font-medium">Difficulty</th>
-                            <th className="px-3 py-2 font-medium">Stars</th>
+                            <th className="px-3 py-2 font-medium">
+                              <span className="inline-flex items-center gap-1">
+                                <StarIcon className="h-3 w-3 text-accent" />
+                                <span>Stars</span>
+                              </span>
+                            </th>
                             <th className="px-3 py-2 font-medium">AR</th>
                             <th className="px-3 py-2 font-medium">CS</th>
                             <th className="px-3 py-2 font-medium">OD</th>
                             <th className="px-3 py-2 font-medium">HP</th>
-                            <th className="px-3 py-2 font-medium">BPM</th>
-                            <th className="px-3 py-2 font-medium">Length</th>
-                            <th className="px-3 py-2 font-medium">Combo</th>
+                            <th className="px-3 py-2 font-medium">
+                              <span className="inline-flex items-center gap-1">
+                                <NoteIcon className="h-3 w-3 text-faint" />
+                                <span>BPM</span>
+                              </span>
+                            </th>
+                            <th className="px-3 py-2 font-medium">
+                              <span className="inline-flex items-center gap-1">
+                                <ClockIcon className="h-3 w-3 text-faint" />
+                                <span>Length</span>
+                              </span>
+                            </th>
+                            <th className="px-3 py-2 font-medium">
+                              <span className="inline-flex items-center gap-1">
+                                <ComboIcon className="h-3 w-3 text-faint" />
+                                <span>Combo</span>
+                              </span>
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {group.beatmaps.map((beatmap) => (
-                            <tr key={`${beatmap.mode}-${beatmap.id}`} className="border-t border-line">
+                            <tr key={`${beatmap.mode}-${beatmap.id}`} className="border-t border-line hover:bg-subtle/50 transition-colors">
                               <td className="px-3 py-2">
                                 <span className="inline-flex items-center gap-2">
                                   <DifficultyChip
                                     rating={beatmap.difficulty_rating}
                                     name={beatmap.version}
                                     mode={beatmap.mode}
+                                    tooltip={false}
                                   />
-                                  {beatmap.convert ? <span className="label">convert</span> : null}
+                                  {beatmap.convert ? (
+                                    <span className="rounded-[2px] border border-line bg-subtle px-1 py-0.5 font-mono text-[10px] text-faint uppercase">
+                                      convert
+                                    </span>
+                                  ) : null}
                                 </span>
                               </td>
                               <td className="px-3 py-2 font-mono tabular-nums">
-                                {beatmap.difficulty_rating.toFixed(2)}
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-[2px] px-1.5 py-0.5 text-xs font-semibold leading-none shadow-xs"
+                                  style={{
+                                    background: difficultyColor(beatmap.difficulty_rating),
+                                    color: difficultyTextColor(),
+                                  }}
+                                >
+                                  <StarIcon className="h-3 w-3 fill-current" />
+                                  <span>{beatmap.difficulty_rating.toFixed(2)}</span>
+                                </span>
                               </td>
                               <td className="px-3 py-2 font-mono tabular-nums">{beatmap.ar.toFixed(1)}</td>
                               <td className="px-3 py-2 font-mono tabular-nums">{beatmap.cs.toFixed(1)}</td>

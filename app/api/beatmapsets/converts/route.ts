@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { ClientCredentials } from "@/lib/credentials";
-import { OsuApiError, osuGet } from "@/lib/osu/client";
+import { osuGet } from "@/lib/osu/client";
 import { credentialsFailure, resolveCredentials } from "@/lib/osu/request-credentials";
 import type { Beatmap, Beatmapset } from "@/lib/osu/types";
 

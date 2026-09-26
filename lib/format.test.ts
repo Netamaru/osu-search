@@ -1,5 +1,13 @@
 import { expect, test } from "bun:test";
-import { difficultyColor, difficultyTextColor } from "./format.ts";
+import {
+  difficultyColor,
+  difficultyTextColor,
+  formatDate,
+  formatLength,
+  formatStatus,
+  formatUtcDateTime,
+  statusIcon,
+} from "./format.ts";
 
 function linearChannel(channel: number): number {
   const value = channel / 255;
@@ -30,7 +38,6 @@ test("difficulty chips keep a light star rating on a darker hue", () => {
 });
 
 test("formats beatmap status and resolves correct status icon path", () => {
-  const { formatStatus, statusIcon } = require("./format.ts");
   expect(formatStatus("ranked")).toBe("Ranked");
   expect(formatStatus("wip")).toBe("WIP");
   expect(formatStatus("graveyard")).toBe("Graveyard");
@@ -44,7 +51,6 @@ test("formats beatmap status and resolves correct status icon path", () => {
 });
 
 test("formats date deterministically as DD MMM YYYY", () => {
-  const { formatDate } = require("./format.ts");
   expect(formatDate("2024-05-18T14:32:00Z")).toBe("18 May 2024");
   expect(formatDate("2023-11-04T08:15:22.000000Z")).toBe("4 Nov 2023");
   expect(formatDate("2021-01-01T00:00:00Z")).toBe("1 Jan 2021");
@@ -55,7 +61,6 @@ test("formats date deterministically as DD MMM YYYY", () => {
 });
 
 test("formats UTC date and time deterministically", () => {
-  const { formatUtcDateTime } = require("./format.ts");
   expect(formatUtcDateTime("2024-05-18T14:32:00Z")).toBe("2024-05-18 14:32:00 UTC");
   expect(formatUtcDateTime("2023-11-04T08:05:09Z")).toBe("2023-11-04 08:05:09 UTC");
   expect(formatUtcDateTime("")).toBe("");
@@ -64,12 +69,10 @@ test("formats UTC date and time deterministically", () => {
   expect(formatUtcDateTime("invalid-date")).toBe("");
 });
 
-test("formats short local date", () => {
-  const { formatShortDate } = require("./format.ts");
-  expect(formatShortDate("2024-05-18T14:32:00Z")).toMatch(/\d{1,4}[/.-]\d{1,4}[/.-]\d{1,4}/);
-  expect(formatShortDate("")).toBe("");
-  expect(formatShortDate(null)).toBe("");
-  expect(formatShortDate(undefined)).toBe("");
-  expect(formatShortDate("invalid-date")).toBe("");
+test("formats song length in mm:ss", () => {
+  expect(formatLength(0)).toBe("0:00");
+  expect(formatLength(5)).toBe("0:05");
+  expect(formatLength(65)).toBe("1:05");
+  expect(formatLength(90)).toBe("1:30");
+  expect(formatLength(214)).toBe("3:34");
 });
-

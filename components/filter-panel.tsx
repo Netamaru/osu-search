@@ -1,13 +1,77 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ModeSvg } from "@/components/mode-icon";
+import { statusIcon } from "@/lib/format";
 import { GENRES, LANGUAGES, MODES, SORTS, STATUSES } from "@/lib/osu/constants";
 import { defaultFilters, hasAdvancedFilters, toggleStatus } from "@/lib/osu/filters";
-import type { DateOp, SearchFilters, TriStateFilter } from "@/lib/osu/types";
+import type { DateOp, Ruleset, SearchFilters, SearchStatus, TriStateFilter } from "@/lib/osu/types";
 
 type When = "now" | "soon";
 
 const ADVANCED_OPEN_KEY = "osu_advanced_filters_open";
+
+const MODE_RULESETS: Record<string, Ruleset> = {
+  "0": "osu",
+  "1": "taiko",
+  "2": "fruits",
+  "3": "mania",
+};
+
+function AllModesIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor" aria-hidden="true">
+      <rect x="2" y="2" width="5" height="5" rx="0.75" />
+      <rect x="9" y="2" width="5" height="5" rx="0.75" />
+      <rect x="2" y="9" width="5" height="5" rx="0.75" />
+      <rect x="9" y="9" width="5" height="5" rx="0.75" />
+    </svg>
+  );
+}
+
+function TrophyIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M4 2a1 1 0 0 0-1 1v1.5C3 5.88 4.12 7 5.5 7h.05A4.5 4.5 0 0 0 7.25 9.7V12H5.5a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5H8.75V9.7A4.5 4.5 0 0 0 10.45 7h.05C11.88 7 13 5.88 13 4.5V3a1 1 0 0 0-1-1H4Zm0 1.5h1.5V5.5C4.67 5.5 4 4.83 4 4V3.5Zm6.5 2V3.5H12V4c0 .83-.67 1.5-1.5 1.5Z" />
+    </svg>
+  );
+}
+
+function AsteriskIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M8 2a.75.75 0 0 1 .75.75v3.44l2.98-1.72a.75.75 0 1 1 .75 1.3L9.5 7.49l2.98 1.72a.75.75 0 1 1-.75 1.3L8.75 8.79v3.46a.75.75 0 0 1-1.5 0V8.79L4.27 10.51a.75.75 0 0 1-.75-1.3l2.98-1.72L3.52 5.77a.75.75 0 0 1 .75-1.3l2.98 1.72V2.75A.75.75 0 0 1 8 2Z" />
+    </svg>
+  );
+}
+
+function ModeFilterIcon({ modeId }: { modeId: string }) {
+  if (!modeId) {
+    return <AllModesIcon className="h-3.5 w-3.5 shrink-0 opacity-80" />;
+  }
+  const ruleset = MODE_RULESETS[modeId];
+  if (!ruleset) return null;
+  return <ModeSvg mode={ruleset} className="h-3.5 w-3.5 shrink-0" />;
+}
+
+function StatusFilterIcon({ status }: { status: SearchStatus }) {
+  if (status === "leaderboard") {
+    return <TrophyIcon className="h-3.5 w-3.5 shrink-0 text-amber-500" />;
+  }
+  if (status === "any") {
+    return <AsteriskIcon className="h-3.5 w-3.5 shrink-0 opacity-80" />;
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={statusIcon(status)}
+      alt=""
+      width={14}
+      height={14}
+      className="h-3.5 w-3.5 shrink-0 [image-rendering:pixelated]"
+    />
+  );
+}
 
 const RANGES: { key: string; min: keyof SearchFilters; max: keyof SearchFilters; hint?: string }[] = [
   { key: "Stars", min: "starsMin", max: "starsMax" },
@@ -75,7 +139,8 @@ export function FilterPanel({
             aria-pressed={value.mode === mode.id}
             onClick={() => onPatch({ mode: mode.id }, "soon")}
           >
-            {mode.label}
+            <ModeFilterIcon modeId={mode.id} />
+            <span>{mode.label}</span>
           </button>
         ))}
       </FilterGroup>
@@ -89,7 +154,8 @@ export function FilterPanel({
             aria-pressed={value.status.includes(status.id)}
             onClick={() => onPatch({ status: toggleStatus(value.status, status.id) }, "soon")}
           >
-            {status.label}
+            <StatusFilterIcon status={status.id} />
+            <span>{status.label}</span>
           </button>
         ))}
       </FilterGroup>

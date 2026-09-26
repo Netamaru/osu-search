@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --c-canvas: 255 255 255;
   --c-subtle: 246 246 246;
@@ -13,9 +15,6 @@
   --c-accent-soft: 255 235 245;
   --c-btn: 24 24 26;
   --c-btn-hover: 112 24 62;
-  --c-btn-direct: 138 32 78;
-  --c-btn-direct-hover: 102 20 56;
-  --c-cream: 251 240 223;
   --c-code-bg: 246 246 246;
   --c-slab: 12 12 12;
   --c-on-slab: 255 255 255;
@@ -25,7 +24,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --c-canvas: 13 10 12;
     --c-subtle: 23 19 22;
     --c-line: 40 40 43;
@@ -38,14 +37,49 @@
     --c-accent-soft: 40 0 22;
     --c-btn: 58 52 56;
     --c-btn-hover: 108 32 64;
-    --c-btn-direct: 124 36 74;
-    --c-btn-direct-hover: 92 24 54;
-    --c-cream: 251 240 223;
     --c-code-bg: 14 14 14;
     --c-slab: 30 30 33;
     --c-on-slab: 240 240 238;
     color-scheme: dark;
   }
+}
+
+.dark {
+  --c-canvas: 13 10 12;
+  --c-subtle: 23 19 22;
+  --c-line: 40 40 43;
+  --c-line-strong: 72 72 76;
+  --c-fg: 234 234 232;
+  --c-fg-muted: 168 168 165;
+  --c-fg-faint: 128 128 126;
+  --c-accent: 255 46 151;
+  --c-accent-strong: 255 92 176;
+  --c-accent-soft: 40 0 22;
+  --c-btn: 58 52 56;
+  --c-btn-hover: 108 32 64;
+  --c-code-bg: 14 14 14;
+  --c-slab: 30 30 33;
+  --c-on-slab: 240 240 238;
+  color-scheme: dark;
+}
+
+.light {
+  --c-canvas: 255 255 255;
+  --c-subtle: 246 246 246;
+  --c-line: 226 226 226;
+  --c-line-strong: 10 10 10;
+  --c-fg: 10 10 10;
+  --c-fg-muted: 82 82 82;
+  --c-fg-faint: 112 112 112;
+  --c-accent: 255 31 143;
+  --c-accent-strong: 214 0 102;
+  --c-accent-soft: 255 235 245;
+  --c-btn: 24 24 26;
+  --c-btn-hover: 112 24 62;
+  --c-code-bg: 246 246 246;
+  --c-slab: 12 12 12;
+  --c-on-slab: 255 255 255;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -62,7 +96,6 @@
   --color-accent: rgb(var(--c-accent));
   --color-accent-strong: rgb(var(--c-accent-strong));
   --color-accent-soft: rgb(var(--c-accent-soft));
-  --color-cream: rgb(var(--c-cream));
   --color-code: rgb(var(--c-code-bg));
   --color-slab: rgb(var(--c-slab));
   --color-on-slab: rgb(var(--c-on-slab));
@@ -139,6 +172,7 @@ body {
   clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
   background: rgb(var(--c-btn));
   color: #f7f4ee;
+  transition: background-color 0.15s ease;
 }
 
 .btn-solid:hover {
@@ -148,13 +182,14 @@ body {
 
 .btn-direct {
   clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
-  background: rgb(var(--c-btn-direct));
-  color: #f7f4ee;
+  background: rgb(var(--c-accent));
+  color: #ffffff;
+  transition: background-color 0.15s ease, filter 0.15s ease;
 }
 
 .btn-direct:hover {
-  background: rgb(var(--c-btn-direct-hover));
-  color: #f7f4ee;
+  background: rgb(var(--c-accent-strong));
+  color: #ffffff;
 }
 
 .btn-ghost {
@@ -169,17 +204,26 @@ body {
 }
 
 .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   border: 1px solid rgb(var(--c-line));
-  border-radius: 999px;
+  border-radius: 2px;
   background: transparent;
   color: rgb(var(--c-fg));
-  padding: 0.35rem 0.75rem;
-  font-size: 13px;
+  padding: 0.3rem 0.65rem;
+  font-size: 12px;
   line-height: 1.2;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  transition: all 0.12s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
 .pill:hover {
   border-color: rgb(var(--c-fg));
+  background: rgb(var(--c-subtle));
 }
 
 .pill[aria-pressed="true"] {
@@ -198,10 +242,12 @@ body {
   border-radius: 4px;
   background: rgb(var(--c-canvas));
   overflow-anchor: auto;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-link:hover {
-  border-color: rgb(var(--c-fg));
+  border-color: rgb(var(--c-accent) / 0.45);
+  box-shadow: 0 4px 20px -4px rgb(var(--c-accent) / 0.12);
 }
 
 .skip-link {
@@ -220,3 +266,31 @@ body {
 .skip-link:focus {
   top: 12px;
 }
+
+@keyframes eq-bar-1 {
+  0%, 100% { height: 3px; }
+  50% { height: 12px; }
+}
+
+@keyframes eq-bar-2 {
+  0%, 100% { height: 12px; }
+  50% { height: 4px; }
+}
+
+@keyframes eq-bar-3 {
+  0%, 100% { height: 5px; }
+  50% { height: 12px; }
+}
+
+.animate-eq-1 {
+  animation: eq-bar-1 0.7s ease-in-out infinite;
+}
+
+.animate-eq-2 {
+  animation: eq-bar-2 0.5s ease-in-out infinite;
+}
+
+.animate-eq-3 {
+  animation: eq-bar-3 0.65s ease-in-out infinite;
+}
+

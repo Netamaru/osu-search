@@ -63,6 +63,7 @@ export function difficultyColor(rating: number): string {
   return color;
 }
 
+
 export function difficultyTextColor(): string {
   return TEXT_ON_DIFFICULTY;
 }
@@ -129,16 +130,6 @@ export function formatDate(iso: string | null | undefined): string {
   return `${day} ${month} ${year}`;
 }
 
-export function formatShortDate(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  });
-}
 
 export function formatUtcDateTime(iso: string | null | undefined): string {
   if (!iso) return "";
