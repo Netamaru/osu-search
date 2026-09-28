@@ -71,12 +71,29 @@ jobs:
           script: |
             set -e
 
-            # Navigate to application directory
-            cd ${{ secrets.SSH_TARGET_DIR || '~/osu-search' }}
+            # Source user profile environment if available
+            for rc in "$HOME/.profile" "$HOME/.bashrc" "$HOME/.zprofile"; do
+              [ -f "$rc" ] && . "$rc" 2>/dev/null || true
+            done
 
             # Ensure Bun is available in PATH
             export BUN_INSTALL="$HOME/.bun"
             export PATH="$BUN_INSTALL/bin:$PATH"
+
+            # Load server's GitHub SSH key into agent if not active in non-interactive shell
+            if [ -z "$SSH_AUTH_SOCK" ]; then
+              eval "$(ssh-agent -s)" 2>/dev/null || true
+              for key in "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_rsa" "$HOME/.ssh/id_ecdsa" "$HOME/.ssh/"*github*; do
+                if [ -f "$key" ] && [ "${key%.pub}" = "$key" ]; then
+                  ssh-add "$key" 2>/dev/null || true
+                fi
+              done
+            fi
+
+            export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new"
+
+            # Navigate to application directory
+            cd ${{ secrets.SSH_TARGET_DIR || '~/projects/osu-search' }}
 
             echo "Pulling latest changes from main..."
             git pull origin main
