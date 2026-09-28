@@ -1,80 +1,101 @@
+<div align="center">
+
 # osu! Search
 
+An advanced, real-time beatmap search engine built with **Next.js 16**, **React 19**, and the official **[osu!api v2](https://osu.ppy.sh/docs/index.html)**.
+
 [![Build & Deploy](https://github.com/Netamaru/osu-search/actions/workflows/deploy.yml/badge.svg)](https://github.com/Netamaru/osu-search/actions/workflows/deploy.yml)
-[![Live Demo](https://img.shields.io/badge/demo-osusearch.netamaru.id-ff66aa?style=flat-square)](https://osusearch.netamaru.id/)
+[![Live Demo](https://img.shields.io/badge/demo-osusearch.netamaru.id-ff1f8f?style=flat-square)](https://osusearch.netamaru.id/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.3-black?style=flat-square&logo=bun)](https://bun.sh/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-![osu! Search Preview](./public/preview.png)
+<br />
 
-> **Live Demo:** [https://osusearch.netamaru.id/](https://osusearch.netamaru.id/)
+<img src="./public/preview.png" alt="osu! Search Dark Theme Preview" width="100%" />
 
-Advanced beatmap search on top of the official [osu!api v2](https://osu.ppy.sh/docs/index.html). Filter by mode, status, stars, AR, CS, OD, HP, BPM, length, mapper, and the rest of the osu! search query, then open a set on osu.ppy.sh or send it to osu!direct.
+<br />
+<br />
 
-There is no user login. The app talks to osu! with an OAuth client-credentials token (`public` scope). Beatmap downloads stay on osu!: the site links to the beatmap page and to `osu://dl/{id}`. It does not proxy `.osz` files.
+[**🌐 Explore Live Demo**](https://osusearch.netamaru.id/) · [**Report Bug**](https://github.com/Netamaru/osu-search/issues) · [**Request Feature**](https://github.com/Netamaru/osu-search/issues)
 
-## Setup
+</div>
 
-Requires [Bun](https://bun.sh) 1.3.
+---
 
-```bash
-bun install
-bun run dev
-```
+## ✨ Features
 
-Open [http://localhost:3000](http://localhost:3000).
+- **Advanced Filtering**: Filter by ruleset (*osu!*, *taiko*, *catch*, *mania*), status (*Ranked*, *Qualified*, *Loved*, *Pending*, *WIP*, *Graveyard*), difficulty stars, AR, CS, OD, HP, BPM, song length, mapper, source, tags, and more.
+- **Deep Query Syntax**: Full interactive query strip supporting complex range expressions, exact matches, exclusions, and sorting.
+- **No Account Login Needed**: Connects via OAuth Client Credentials (`public` scope). Beatmap downloads link directly to `osu://dl/{id}` or the official beatmap listings.
+- **Integrated Audio Preview**: Listen to beatmap preview tracks directly within the search results.
+- **Shareable Filter State**: Search parameters and active filters synchronize automatically to the browser URL for easy bookmarking and sharing.
+- **Dark & Light Mode**: Clean, high-contrast brutalist design with seamless theme toggling and persistent preferences.
 
-Search needs an OAuth application from [osu! account settings](https://osu.ppy.sh/home/account/edit#oauth). The callback URL can be left blank.
+---
 
-- In the browser, use **API client** and save the client id and secret. They stay in `localStorage` on that browser and are sent only to this app’s API routes.
-- Or copy `.env.example` to `.env.local` and set `OSU_CLIENT_ID` and `OSU_CLIENT_SECRET`. That pair is a server fallback used when the request has no browser credentials. Do not commit `.env.local`.
+## 🚀 Getting Started
 
-A client id and secret in the request always win over the env fallback. An invalid pair is rejected and is not replaced with the env values.
+### Prerequisites
 
-## Scripts
+- [Bun](https://bun.sh) 1.3 or higher
 
-| Command | What it does |
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Netamaru/osu-search.git
+   cd osu-search
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   bun install
+   ```
+
+3. **Start the development server:**
+   ```bash
+   bun run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🔑 osu! API Credentials
+
+To perform searches against the osu! API, an OAuth application is required:
+
+1. Create an OAuth application in your [osu! account settings](https://osu.ppy.sh/home/account/edit#oauth). The callback URL can be left blank.
+2. You can provide credentials in either of two ways:
+   - **In the browser:** Click **API client** in the top navigation bar and enter your Client ID and Client Secret. These are stored locally in `localStorage` on your machine and never sent elsewhere.
+   - **On the server (Optional fallback):** Copy `.env.example` to `.env.local` and configure `OSU_CLIENT_ID` and `OSU_CLIENT_SECRET`. Never commit `.env.local`.
+
+> **Note:** Credentials entered in the browser always take precedence over server environment fallbacks.
+
+---
+
+## 🛠️ Available Scripts
+
+| Command | Description |
 | --- | --- |
-| `bun run dev` | Next.js dev server |
-| `bun run build` | Production build |
-| `bun run start` | Serve the production build |
-| `bun run lint` | ESLint |
-| `bun test` | Unit tests |
+| `bun run dev` | Starts the Next.js local development server |
+| `bun run build` | Compiles and optimizes the production build |
+| `bun run start` | Serves the production build |
+| `bun run lint` | Runs ESLint checks |
+| `bun test` | Runs the test suite |
 
-## What you can search
+---
 
-Mode (osu!, taiko, catch, mania), status, and sort sit on the main filter bar. Advanced filters add genre, language, star rating and other difficulty ranges, BPM, length, mania key count, artist, title, mapper, source, tags, ranked and updated dates, plus featured artist, video, storyboard, explicit, and converts.
+## 📝 API & Rate Limiting
 
-The current filters are written into the page URL. Opening a beatmap and coming back restores that query and the scroll position.
+- API endpoints under `app/api/` proxy requests to `https://osu.ppy.sh/api/v2`.
+- Requests per Client ID are paced to comply with osu! API limits (~1 request per second).
+- Search query responses are cached in memory for 45 seconds, and ruleset difficulty convert queries for 30 minutes.
 
-A beatmap page shows the cover, preview audio, and each ruleset’s difficulties. Search results do not include converts; those are loaded from the beatmapset endpoint and cached separately.
+---
 
-## API notes
+## 📄 License
 
-Routes under `app/api` call `https://osu.ppy.sh/api/v2` with the resolved client. Each client id is paced to about one request per second. Search responses are cached in memory for 45 seconds, and convert lookups for 30 minutes. The osu! rate limit is per token, so rotating proxies does not raise it.
-
-## Deployment (CI/CD)
-
-Automated build, test, and SSH deployment is configured using GitHub Actions in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
-
-On push to `main`, the workflow:
-1. Runs tests (`bun test`) and builds the app (`bun run build`).
-2. Connects to your server via SSH and pulls the latest code, installs dependencies, rebuilds, and restarts the service.
-
-To enable automated SSH deployments, set the following secrets in your repository settings (**Settings > Secrets and variables > Actions**):
-
-| Secret | Description | Example |
-| --- | --- | --- |
-| `SSH_HOST` | Remote server hostname or IP address | `123.45.67.89` |
-| `SSH_USER` | SSH username | `root` or `ubuntu` |
-| `SSH_KEY` | Private SSH key (ed25519 or rsa) | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `SSH_PORT` | *(Optional)* SSH port (defaults to `22`) | `22` |
-| `SSH_TARGET_DIR` | *(Optional)* App directory on server | `/var/www/osu-search` or `~/osu-search` |
-| `PORT` | *(Optional)* Custom port for Next.js app (defaults to `3000`) | `3001` or `8080` |
-| `DISCORD_WEBHOOK` | *(Optional)* Discord webhook URL for build & deploy notifications | `https://discord.com/api/webhooks/...` |
-
-The process runs under PM2 with the name `osusearch.netamaru.id`. If it already exists, the workflow performs a zero-downtime reload/restart; otherwise it creates and starts a new process.
-
-## License
-
-This project is open-source and available under the [MIT License](LICENSE).
-
+Distributed under the [MIT License](LICENSE).
+Copyright © 2026 [Netamaru](https://github.com/Netamaru).
