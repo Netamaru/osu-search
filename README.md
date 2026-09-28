@@ -1,5 +1,13 @@
 # osu! Search
 
+[![Build & Deploy](https://github.com/Netamaru/osu-search/actions/workflows/deploy.yml/badge.svg)](https://github.com/Netamaru/osu-search/actions/workflows/deploy.yml)
+[![Live Demo](https://img.shields.io/badge/demo-osusearch.netamaru.id-ff66aa?style=flat-square)](https://osusearch.netamaru.id/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
+![osu! Search Preview](./public/preview.png)
+
+> **Live Demo:** [https://osusearch.netamaru.id/](https://osusearch.netamaru.id/)
+
 Advanced beatmap search on top of the official [osu!api v2](https://osu.ppy.sh/docs/index.html). Filter by mode, status, stars, AR, CS, OD, HP, BPM, length, mapper, and the rest of the osu! search query, then open a set on osu.ppy.sh or send it to osu!direct.
 
 There is no user login. The app talks to osu! with an OAuth client-credentials token (`public` scope). Beatmap downloads stay on osu!: the site links to the beatmap page and to `osu://dl/{id}`. It does not proxy `.osz` files.
@@ -43,3 +51,30 @@ A beatmap page shows the cover, preview audio, and each ruleset’s difficulties
 ## API notes
 
 Routes under `app/api` call `https://osu.ppy.sh/api/v2` with the resolved client. Each client id is paced to about one request per second. Search responses are cached in memory for 45 seconds, and convert lookups for 30 minutes. The osu! rate limit is per token, so rotating proxies does not raise it.
+
+## Deployment (CI/CD)
+
+Automated build, test, and SSH deployment is configured using GitHub Actions in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+On push to `main`, the workflow:
+1. Runs tests (`bun test`) and builds the app (`bun run build`).
+2. Connects to your server via SSH and pulls the latest code, installs dependencies, rebuilds, and restarts the service.
+
+To enable automated SSH deployments, set the following secrets in your repository settings (**Settings > Secrets and variables > Actions**):
+
+| Secret | Description | Example |
+| --- | --- | --- |
+| `SSH_HOST` | Remote server hostname or IP address | `123.45.67.89` |
+| `SSH_USER` | SSH username | `root` or `ubuntu` |
+| `SSH_KEY` | Private SSH key (ed25519 or rsa) | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `SSH_PORT` | *(Optional)* SSH port (defaults to `22`) | `22` |
+| `SSH_TARGET_DIR` | *(Optional)* App directory on server | `/var/www/osu-search` or `~/osu-search` |
+| `PORT` | *(Optional)* Custom port for Next.js app (defaults to `3000`) | `3001` or `8080` |
+| `DISCORD_WEBHOOK` | *(Optional)* Discord webhook URL for build & deploy notifications | `https://discord.com/api/webhooks/...` |
+
+The process runs under PM2 with the name `osusearch.netamaru.id`. If it already exists, the workflow performs a zero-downtime reload/restart; otherwise it creates and starts a new process.
+
+## License
+
+This project is open-source and available under the [MIT License](LICENSE).
+

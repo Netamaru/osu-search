@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ApiClientButton } from "@/components/credentials-provider";
 import { ChangelogModal } from "@/components/changelog-modal";
+import { GithubIcon } from "@/components/icons";
 import { SearchBackLink } from "@/components/search-back-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -26,6 +27,17 @@ export function SiteHeader() {
             >
               Changelog
             </button>
+            <span className="mx-3.5 h-4 w-px bg-line" aria-hidden="true" />
+            <a
+              href="https://github.com/Netamaru/osu-search"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label hover:text-fg transition-colors inline-flex items-center gap-1.5"
+              title="GitHub repository"
+            >
+              <GithubIcon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">GitHub</span>
+            </a>
             <span className="mx-3.5 h-4 w-px bg-line" aria-hidden="true" />
             <ThemeToggle />
           </div>
