@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { exchangeOsuCode, fetchOsuMe, getOsuOAuthCredentials, getRedirectUri } from "@/lib/auth/osu-oauth";
+import { exchangeOsuCode, fetchOsuMe, getAppOrigin, getOsuOAuthCredentials, getRedirectUri } from "@/lib/auth/osu-oauth";
 import {
   OAUTH_RETURN_COOKIE_NAME,
   OAUTH_STATE_COOKIE_NAME,
@@ -11,6 +11,7 @@ import { createSession, upsertUser } from "@/lib/db/queries";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const origin = getAppOrigin(request);
   const cookieStore = await cookies();
 
   const code = url.searchParams.get("code");
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
   cookieStore.delete(OAUTH_RETURN_COOKIE_NAME);
 
   const redirectWithError = (errCode: string) => {
-    const target = new URL(returnTo, url.origin);
+    const target = new URL(returnTo, origin);
     target.searchParams.set("auth_error", errCode);
     return NextResponse.redirect(target);
   };
@@ -78,7 +79,7 @@ export async function GET(request: Request) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    const target = new URL(returnTo, url.origin);
+    const target = new URL(returnTo, origin);
     target.searchParams.delete("auth_error");
     return NextResponse.redirect(target);
   } catch (err) {

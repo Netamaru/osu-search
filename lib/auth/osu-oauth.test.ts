@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { buildOsuAuthorizeUrl, getRedirectUri } from "./osu-oauth";
+import { buildOsuAuthorizeUrl, getAppOrigin, getRedirectUri } from "./osu-oauth";
 
 describe("osu! OAuth helpers", () => {
   it("builds the authorize URL correctly", () => {
@@ -41,5 +41,23 @@ describe("osu! OAuth helpers", () => {
 
     if (originalEnv) process.env.NEXT_PUBLIC_APP_URL = originalEnv;
     else delete process.env.NEXT_PUBLIC_APP_URL;
+  });
+
+  it("ignores internal localhost proxy port in production and falls back to canonical domain", () => {
+    const originalEnv = process.env.NEXT_PUBLIC_APP_URL;
+    const originalNodeEnv = process.env.NODE_ENV;
+    delete process.env.NEXT_PUBLIC_APP_URL;
+    process.env.NODE_ENV = "production";
+
+    const req = new Request("http://localhost:4008/api/auth/callback/osu", {
+      headers: { host: "localhost:4008" },
+    });
+
+    const origin = getAppOrigin(req);
+    expect(origin).toBe("https://osusearch.netamaru.id");
+
+    if (originalEnv) process.env.NEXT_PUBLIC_APP_URL = originalEnv;
+    else delete process.env.NEXT_PUBLIC_APP_URL;
+    if (originalNodeEnv) process.env.NODE_ENV = originalNodeEnv;
   });
 });

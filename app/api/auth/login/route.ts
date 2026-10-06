@@ -1,17 +1,18 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { buildOsuAuthorizeUrl, getOsuOAuthCredentials, getRedirectUri } from "@/lib/auth/osu-oauth";
+import { buildOsuAuthorizeUrl, getAppOrigin, getOsuOAuthCredentials, getRedirectUri } from "@/lib/auth/osu-oauth";
 import { OAUTH_RETURN_COOKIE_NAME, OAUTH_STATE_COOKIE_NAME } from "@/lib/auth/session";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const origin = getAppOrigin(request);
   const rawReturnTo = url.searchParams.get("returnTo") || "/";
   const returnTo = rawReturnTo.startsWith("/") && !rawReturnTo.startsWith("//") ? rawReturnTo : "/";
 
   const credentials = getOsuOAuthCredentials();
   if (!credentials) {
-    const errorUrl = new URL(returnTo, url.origin);
+    const errorUrl = new URL(returnTo, origin);
     errorUrl.searchParams.set("auth_error", "missing_server_credentials");
     return NextResponse.redirect(errorUrl);
   }

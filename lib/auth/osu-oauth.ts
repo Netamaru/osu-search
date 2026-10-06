@@ -24,21 +24,38 @@ export function getOsuOAuthCredentials(): ClientCredentials | null {
   return parseClientCredentials(id, secret);
 }
 
-export function getRedirectUri(request?: Request): string {
+export function getAppOrigin(request?: Request): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (appUrl) {
-    return `${appUrl.replace(/\/$/, "")}/api/auth/callback/osu`;
+    return appUrl.replace(/\/$/, "");
   }
 
   if (request) {
-    const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
-    const proto = request.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const host = forwardedHost || request.headers.get("host");
+
     if (host) {
-      return `${proto}://${host}/api/auth/callback/osu`;
+      const isInternalLocalhost =
+        (host.startsWith("localhost:") || host.startsWith("127.0.0.1:")) && host !== "localhost:3000";
+
+      if (!isInternalLocalhost || process.env.NODE_ENV !== "production") {
+        const proto = forwardedProto || (host.includes("localhost") ? "http" : "https");
+        return `${proto}://${host}`;
+      }
     }
   }
 
-  return "http://localhost:3000/api/auth/callback/osu";
+  if (process.env.NODE_ENV === "production") {
+    return "https://osusearch.netamaru.id";
+  }
+
+  return "http://localhost:3000";
+}
+
+export function getRedirectUri(request?: Request): string {
+  const origin = getAppOrigin(request);
+  return `${origin}/api/auth/callback/osu`;
 }
 
 export function buildOsuAuthorizeUrl(
