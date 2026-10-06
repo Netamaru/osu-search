@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Archivo, Martian_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/auth-provider";
 import { CredentialsProvider } from "@/components/credentials-provider";
+import { FavoritesProvider } from "@/components/favorites-provider";
 import { GithubIcon } from "@/components/icons";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { SiteHeader } from "@/components/site-header";
@@ -76,11 +78,15 @@ export default function RootLayout({
           Skip to results
         </a>
         <CredentialsProvider>
-          <SiteHeader />
-          <main className="flex flex-1 flex-col">
-            {children}
-            <div className="column flex-1" aria-hidden="true" />
-          </main>
+          <AuthProvider>
+            <FavoritesProvider>
+              <SiteHeader />
+              <main className="flex flex-1 flex-col">
+                {children}
+                <div className="column flex-1" aria-hidden="true" />
+              </main>
+            </FavoritesProvider>
+          </AuthProvider>
         </CredentialsProvider>
         <ScrollToTop />
         <footer className="mt-auto border-t border-line text-sm text-muted">

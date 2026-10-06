@@ -143,3 +143,207 @@ export function GithubIcon({ className }: { className?: string }) {
   );
 }
 
+export function HeartOutlineIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    </svg>
+  );
+}
+
+export function BookmarkIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="currentColor">
+      <path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v18l-7-4-7 4V4z" />
+    </svg>
+  );
+}
+
+export function BookmarkOutlineIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+    </svg>
+  );
+}
+
+export function ShareIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+export function PlusIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+export function TrashIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  );
+}
+
+export function EditIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+export function OsuLogo({ className }: { className: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="25 25 300 300"
+      className={className}
+      aria-hidden="true"
+    >
+      <style>{`
+        .osu-st1{opacity:.15}
+        .osu-st3{fill:#f1f1f2}
+        .osu-st4{fill:#231f20}
+        .osu-st5{fill:#808184}
+        .osu-st8{fill:#59595c}
+        .osu-st9{fill:#a7a8ab}
+        .osu-st10{fill:#6d6e70}
+        .osu-st11{fill:#221f1f}
+        .osu-st12{fill:#404041}
+        .osu-st13{fill:#58595b}
+        .osu-st14{fill:#bbbdbf}
+        .osu-st15{fill:#fff}
+        .osu-st16{fill:#a6a8ab}
+      `}</style>
+      <circle cx="175" cy="175" r="143.7" fill="#f6a" />
+      <g className="osu-st1" id="Triangles">
+        <defs>
+          <circle id="osu-logo-clip-a" className="osu-st1" cx="175" cy="175" r="150" />
+        </defs>
+        <clipPath id="osu-logo-clip-b">
+          <use href="#osu-logo-clip-a" overflow="visible" />
+        </clipPath>
+        <g clipPath="url(#osu-logo-clip-b)">
+          <path className="osu-st3" d="M-81.2 336.9 175-106.9l256.2 443.8z" />
+          <path className="osu-st4" d="M68.8 443.7 325 0l256.2 443.7z" />
+          <path className="osu-st5" d="m-409.8 363.4 256.2-443.7 256.2 443.7z" />
+          <path d="m61.4 158.2 256.2-443.8 256.2 443.8z" fill="#929497" />
+          <path d="M-222.4 380 33.8-63.7 290 380z" fill="#636466" />
+          <path className="osu-st8" d="m-100.1 646.9 256.2-443.8 256.2 443.8z" />
+          <path className="osu-st9" d="m-164.9 147.2 97.3-168.5 97.3 168.5zm81.5 376.6 97.3-168.5 97.3 168.5z" />
+          <path className="osu-st10" d="m134.3 220.8 97.3-168.5 97.3 168.5z" />
+          <path className="osu-st9" d="M298.7 485.7 396 317.2l97.2 168.5z" />
+          <path className="osu-st8" d="m108.4 621.4 48.6-84.2 48.7 84.2z" />
+          <path className="osu-st11" d="m278.7 305.9 48.6-84.2 48.6 84.2zM46.2 400l97.3-168.5L240.8 400z" />
+          <path className="osu-st5" d="M108.8-86.6 36.5 38.6h194.6L158.8-86.6zm213.2 0-23.6 40.9h97.3L372-86.6z" />
+          <path className="osu-st12" d="M35.3 332.5 132.6 164l97.3 168.5z" />
+          <path className="osu-st5" d="m236.1 369.2 97.2-168.5 97.3 168.5z" />
+          <path className="osu-st8" d="m-51.9 428.8 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st13" d="m123.2 104.8 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st11" d="m283 90.2 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st5" d="m-61.9 331.6 24.1-41.7 24 41.7z" />
+          <path className="osu-st8" d="m132.5 621.6 24-41.7 24.1 41.7zm84.2-156 24-41.7 24 41.7z" />
+          <path className="osu-st12" d="m197.1 259.7 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st3" d="m283 239.3 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st9" d="M-49.5 78.8-1.4-4.5l48.1 83.3zm-48.4 146.6 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st5" d="m288.2-20 24-41.6L336.3-20z" />
+          <path className="osu-st14" d="m187.2 116.2 24.1-41.6 24 41.6z" />
+          <path className="osu-st15" d="m231.9 63.8 6.4-11 6.4 11z" />
+          <path className="osu-st10" d="M28.9 117.8 77 34.5l48.1 83.3z" />
+          <path className="osu-st16" d="m110.8 331.9 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st4" d="m107 263.1 18.1-31.4 18 31.4z" />
+          <path className="osu-st9" d="m214 285.3 24-41.7 24.1 41.7zm-5.4-118.1 24-41.6 24.1 41.6z" />
+          <path className="osu-st3" d="m226 102.8 48.1-83.3 48 83.3z" />
+          <path className="osu-st16" d="m1.2 143.6 48.1-83.3 48.1 83.3z" />
+          <path className="osu-st8" d="m14 272.2 18.3-31.8 18.3 31.8z" />
+          <path className="osu-st16" d="m265.4 230.6 18.3-31.8 18.3 31.8z" />
+          <path className="osu-st15" d="M156.7 84.8 175 53.1l18.3 31.7z" />
+          <path className="osu-st13" d="m156.7 282.1 18.3-31.8 18.3 31.8z" />
+          <path className="osu-st8" d="m-19.7 88 18.3-31.8L17 88zm258.1 272.2 18.3-31.7 18.3 31.7z" />
+          <path className="osu-st5" d="m307.5 135.6 18.3-31.8 18.3 31.8z" />
+          <path className="osu-st14" d="m45.3 233.1 18.3-31.8L82 233.1z" />
+          <path className="osu-st3" d="m72.3 295.1 18.3-31.8 18.4 31.8zM27.6 167.7 46 136l18.3 31.7z" />
+          <path className="osu-st8" d="m113.7 123.7 9.1-15.8 9.2 15.8z" />
+          <path className="osu-st14" d="m50.8 152.9 9.1-15.8 9.2 15.8z" />
+          <path d="m107.7 84.4 9.2-15.9 9.2 15.9z" fill="#e6e7e8" />
+          <path className="osu-st11" d="m69 360.2 18.3-31.7 18.3 31.7z" />
+          <path className="osu-st8" d="m112.2 419.2 18.3-31.8 18.3 31.8zm404.5-131.1 18.4-31.8 18.3 31.8z" />
+          <path className="osu-st5" d="M187.7 61.9 206 30.1l18.4 31.8z" />
+          <path className="osu-st15" d="m283.4 128.2 18.3-31.7 18.3 31.7z" />
+          <path className="osu-st8" d="m316.6 622.1 9.2-15.9 9.2 15.9z" />
+          <path className="osu-st9" d="m262.4 411.2 9.2-15.8 9.1 15.8z" />
+          <path className="osu-st8" d="m577.5 394.4 9.2-15.9 9.2 15.9z" />
+          <path className="osu-st5" d="m-97.4 339.9 18.3-31.7 18.4 31.7zm375.1-24.4 18.4-31.8 18.3 31.8z" />
+          <path className="osu-st9" d="m286.9 268.6 9.2-15.9 9.1 15.9z" />
+          <path d="m210.1 128.5 10.9-18.9 10.9 18.9z" fill="#d0d2d3" />
+          <path className="osu-st5" d="M94.9-41.1 104-57l9.2 15.9z" />
+          <path className="osu-st8" d="M386.7 121.9 405 90.2l18.4 31.7zM463 336.8l9.2-15.9 9.2 15.9z" />
+        </g>
+      </g>
+      <path
+        className="osu-st15"
+        d="M100.1 206.4c-4.7 0-8.8-.8-12.3-2.3-3.5-1.5-6.4-3.7-8.6-6.4-2.3-2.7-4-5.9-5.2-9.6-1.2-3.7-1.7-7.6-1.7-11.9 0-4.3.6-8.3 1.7-12 1.2-3.7 2.9-7 5.2-9.7 2.3-2.7 5.2-4.9 8.6-6.5 3.5-1.6 7.6-2.4 12.3-2.4s8.8.8 12.3 2.4c3.5 1.6 6.4 3.7 8.8 6.5 2.3 2.7 4 6 5.2 9.7 1.1 3.7 1.7 7.7 1.7 12s-.6 8.2-1.7 11.9c-1.1 3.7-2.8 6.9-5.2 9.6-2.3 2.7-5.2 4.9-8.8 6.4-3.4 1.6-7.6 2.3-12.3 2.3zm0-12.1c4.2 0 7.2-1.6 9-4.7 1.8-3.1 2.7-7.6 2.7-13.4 0-5.8-.9-10.3-2.7-13.4-1.8-3.1-4.8-4.7-9-4.7-4.1 0-7.1 1.6-8.9 4.7-1.8 3.1-2.8 7.6-2.8 13.4 0 5.8.9 10.3 2.8 13.4 1.8 3.2 4.8 4.7 8.9 4.7zm51.8-14.5c-4.2-1.2-7.5-3-9.8-5.3-2.4-2.4-3.5-5.9-3.5-10.6 0-5.7 2-10.1 6.1-13.4 4.1-3.2 9.6-4.8 16.7-4.8a49.13 49.13 0 0 1 17.2 3.2c-.2 1.9-.5 4-1.1 6.1-.6 2.1-1.3 3.9-2.1 5.5-1.8-.7-3.8-1.4-5.9-2-2.2-.6-4.5-.8-6.8-.8-2.5 0-4.5.4-5.9 1.2-1.4.8-2.1 2-2.1 3.8 0 1.6.5 2.8 1.5 3.5 1 .7 2.4 1.3 4.3 1.9l6.4 1.9c2.1.6 4 1.3 5.7 2.2 1.7.9 3.1 1.9 4.3 3.2 1.2 1.3 2.1 2.8 2.8 4.7.7 1.9 1 4.2 1 6.8 0 2.8-.6 5.3-1.7 7.7a17.6 17.6 0 0 1-5 6.2c-2.2 1.8-4.9 3.1-8 4.2a35 35 0 0 1-10.7 1.5c-1.8 0-3.4-.1-4.9-.2-1.5-.1-2.9-.3-4.3-.6s-2.7-.6-4.1-1c-1.3-.4-2.8-.9-4.4-1.5.1-2 .5-4.1 1.1-6.1.6-2.1 1.3-4.1 2.2-6 2.5 1 4.8 1.7 7 2.2 2.2.5 4.5.7 6.9.7 1 0 2.2-.1 3.4-.3 1.2-.2 2.4-.5 3.4-1s1.9-1.1 2.6-1.9c.7-.8 1.1-1.8 1.1-3.1 0-1.8-.5-3.1-1.6-3.9-1.1-.8-2.6-1.5-4.5-2.1l-7.3-1.9zm39.3-32.7c2.7-.4 5.3-.7 8-.7 2.6 0 5.3.2 8 .7v30.7c0 3.1.2 5.6.7 7.6.5 2 1.2 3.6 2.2 4.7 1 1.2 2.3 2 3.8 2.5s3.3.7 5.3.7c2.8 0 5.1-.3 7-.8v-45.4c2.7-.4 5.3-.7 7.9-.7 2.6 0 5.3.2 8 .7v55.8c-2.4.8-5.6 1.6-9.5 2.4a65.33 65.33 0 0 1-23.3.3c-3.5-.6-6.6-1.9-9.3-3.8-2.7-1.9-4.8-4.8-6.3-8.5-1.6-3.7-2.4-8.7-2.4-14.9v-31.3zm65.9 58c-.4-2.8-.7-5.5-.7-8.2 0-2.7.2-5.5.7-8.3 2.8-.4 5.5-.7 8.2-.7 2.7 0 5.5.2 8.3.7.4 2.8.7 5.6.7 8.2 0 2.8-.2 5.5-.7 8.3-2.8.4-5.6.7-8.2.7-2.8-.1-5.5-.3-8.3-.7zm-.4-80.7c2.9-.4 5.8-.7 8.6-.7 2.9 0 5.8.2 8.8.7l-1.1 54.9c-2.6.4-5.1.7-7.5.7-2.5 0-5.1-.2-7.6-.7l-1.2-54.9z"
+      />
+      <path
+        className="osu-st15"
+        d="M175 25C92.2 25 25 92.2 25 175s67.2 150 150 150 150-67.2 150-150S257.8 25 175 25zm0 285c-74.6 0-135-60.4-135-135S100.4 40 175 40s135 60.4 135 135-60.4 135-135 135z"
+/>
+    </svg>
+  );
+}
+
+export function GridIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="currentColor">
+      <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z" />
+    </svg>
+  );
+}
+
+export function ListIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} aria-hidden="true" fill="currentColor">
+      <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}

@@ -58,6 +58,11 @@ export function BeatmapDetail({ beatmapset }: { beatmapset: Beatmapset }) {
                     Explicit
                   </span>
                 ) : null}
+                {(beatmapset as { is_deleted_from_osu?: boolean }).is_deleted_from_osu ? (
+                  <span className="rounded-[2px] border border-amber-500/40 bg-amber-950/70 px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-amber-200 uppercase shadow-xs">
+                    Archived Snapshot (Official Deleted)
+                  </span>
+                ) : null}
               </div>
 
               <div>
@@ -130,7 +135,7 @@ export function BeatmapDetail({ beatmapset }: { beatmapset: Beatmapset }) {
                   src={absoluteUrl(beatmapset.preview_url)}
                 />
               ) : null}
-              <BeatmapActions id={beatmapset.id} />
+              <BeatmapActions id={beatmapset.id} beatmapset={beatmapset} />
             </div>
           </div>
         </div>

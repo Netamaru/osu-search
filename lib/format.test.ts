@@ -3,6 +3,8 @@ import {
   difficultyColor,
   difficultyTextColor,
   formatDate,
+  formatLocalDate,
+  formatLocalDateTime,
   formatLength,
   formatStatus,
   formatUtcDateTime,
@@ -75,4 +77,17 @@ test("formats song length in mm:ss", () => {
   expect(formatLength(65)).toBe("1:05");
   expect(formatLength(90)).toBe("1:30");
   expect(formatLength(214)).toBe("3:34");
+});
+
+test("formats local date and local datetime correctly", () => {
+  const d = new Date(2024, 4, 18, 14, 32); // local May 18, 2024, 14:32
+  const iso = d.toISOString();
+  expect(formatLocalDate(iso)).toBe("18 May 2024");
+  expect(formatLocalDateTime(iso)).toBe("18 May 2024, 14:32");
+  expect(formatLocalDate("")).toBe("");
+  expect(formatLocalDateTime("")).toBe("");
+  expect(formatLocalDate(null)).toBe("");
+  expect(formatLocalDateTime(null)).toBe("");
+  expect(formatLocalDate("invalid-date")).toBe("");
+  expect(formatLocalDateTime("invalid-date")).toBe("");
 });

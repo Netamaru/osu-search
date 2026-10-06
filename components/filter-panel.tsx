@@ -387,7 +387,7 @@ function TriStateSegmented({
           type="button"
           className={`cursor-pointer rounded-[2px] px-2.5 py-0.5 transition-all ${
             value === "exclude"
-              ? "bg-accent text-white font-semibold shadow-xs"
+              ? "bg-pink-500 text-white font-semibold shadow-xs"
               : "text-muted hover:text-fg"
           }`}
           onClick={() => onChange("exclude")}

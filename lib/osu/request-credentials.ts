@@ -7,13 +7,12 @@ export type CredentialResult =
 export function resolveCredentials(request: Request): CredentialResult {
   const headerId = request.headers.get("x-osu-client-id");
   const headerSecret = request.headers.get("x-osu-client-secret");
-  if (headerId !== null || headerSecret !== null) {
-    const credentials = parseClientCredentials(headerId ?? "", headerSecret ?? "");
-    return credentials ? { ok: true, credentials } : { ok: false, reason: "invalid" };
+  if (!headerId?.trim() && !headerSecret?.trim()) {
+    return { ok: false, reason: "missing" };
   }
 
-  const credentials = parseClientCredentials(process.env.OSU_CLIENT_ID ?? "", process.env.OSU_CLIENT_SECRET ?? "");
-  return credentials ? { ok: true, credentials } : { ok: false, reason: "missing" };
+  const credentials = parseClientCredentials(headerId ?? "", headerSecret ?? "");
+  return credentials ? { ok: true, credentials } : { ok: false, reason: "invalid" };
 }
 
 export function credentialsFailure(result: Extract<CredentialResult, { ok: false }>) {

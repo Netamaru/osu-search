@@ -21,7 +21,7 @@ test("decodes credentials stored as json", () => {
   expect(decodeCredentials("")).toBeNull();
 });
 
-test("uses request headers before the server environment", () => {
+test("requires client credentials in request headers and does not use server env", () => {
   const previousId = process.env.OSU_CLIENT_ID;
   const previousSecret = process.env.OSU_CLIENT_SECRET;
   process.env.OSU_CLIENT_ID = "111";
@@ -35,8 +35,9 @@ test("uses request headers before the server environment", () => {
     );
     expect(fromHeader).toEqual({ ok: true, credentials: { clientId: "222", clientSecret: "browser-secret" } });
 
+    // OSU_CLIENT_ID & OSU_CLIENT_SECRET in server env are reserved for user OAuth login only
     const fromEnv = resolveCredentials(new Request("http://localhost/api/search"));
-    expect(fromEnv).toEqual({ ok: true, credentials: { clientId: "111", clientSecret: "server-secret" } });
+    expect(fromEnv).toEqual({ ok: false, reason: "missing" });
 
     const invalid = resolveCredentials(
       new Request("http://localhost/api/search", {

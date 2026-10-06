@@ -10,9 +10,9 @@
   --c-fg: 10 10 10;
   --c-fg-muted: 82 82 82;
   --c-fg-faint: 112 112 112;
-  --c-accent: 255 31 143;
-  --c-accent-strong: 214 0 102;
-  --c-accent-soft: 255 235 245;
+  --c-accent: 236 72 153;
+  --c-accent-strong: 219 39 119;
+  --c-accent-soft: 253 242 248;
   --c-btn: 24 24 26;
   --c-btn-hover: 112 24 62;
   --c-code-bg: 246 246 246;
@@ -32,9 +32,9 @@
     --c-fg: 234 234 232;
     --c-fg-muted: 168 168 165;
     --c-fg-faint: 128 128 126;
-    --c-accent: 255 46 151;
-    --c-accent-strong: 255 92 176;
-    --c-accent-soft: 40 0 22;
+    --c-accent: 236 72 153;
+    --c-accent-strong: 219 39 119;
+    --c-accent-soft: 80 7 36;
     --c-btn: 58 52 56;
     --c-btn-hover: 108 32 64;
     --c-code-bg: 14 14 14;
@@ -52,9 +52,9 @@
   --c-fg: 234 234 232;
   --c-fg-muted: 168 168 165;
   --c-fg-faint: 128 128 126;
-  --c-accent: 255 46 151;
-  --c-accent-strong: 255 92 176;
-  --c-accent-soft: 40 0 22;
+  --c-accent: 236 72 153;
+  --c-accent-strong: 219 39 119;
+  --c-accent-soft: 80 7 36;
   --c-btn: 58 52 56;
   --c-btn-hover: 108 32 64;
   --c-code-bg: 14 14 14;
@@ -71,9 +71,9 @@
   --c-fg: 10 10 10;
   --c-fg-muted: 82 82 82;
   --c-fg-faint: 112 112 112;
-  --c-accent: 255 31 143;
-  --c-accent-strong: 214 0 102;
-  --c-accent-soft: 255 235 245;
+  --c-accent: 236 72 153;
+  --c-accent-strong: 219 39 119;
+  --c-accent-soft: 253 242 248;
   --c-btn: 24 24 26;
   --c-btn-hover: 112 24 62;
   --c-code-bg: 246 246 246;
@@ -159,6 +159,16 @@ body {
   font-size: 14px;
 }
 
+.field-search {
+  padding-left: 2.25rem !important;
+  padding-right: 2rem !important;
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
+  font-size: 12px !important;
+  line-height: 1rem !important;
+  height: 2.125rem !important;
+}
+
 .field::placeholder {
   color: rgb(var(--c-fg-faint));
 }
@@ -182,13 +192,13 @@ body {
 
 .btn-direct {
   clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
-  background: rgb(var(--c-accent));
+  background-color: var(--color-pink-500, #ec4899);
   color: #ffffff;
   transition: background-color 0.15s ease, filter 0.15s ease;
 }
 
 .btn-direct:hover {
-  background: rgb(var(--c-accent-strong));
+  background-color: var(--color-pink-600, #db2777);
   color: #ffffff;
 }
 
@@ -268,18 +278,39 @@ body {
 }
 
 @keyframes eq-bar-1 {
-  0%, 100% { height: 3px; }
-  50% { height: 12px; }
+
+  0%,
+  100% {
+    height: 3px;
+  }
+
+  50% {
+    height: 12px;
+  }
 }
 
 @keyframes eq-bar-2 {
-  0%, 100% { height: 12px; }
-  50% { height: 4px; }
+
+  0%,
+  100% {
+    height: 12px;
+  }
+
+  50% {
+    height: 4px;
+  }
 }
 
 @keyframes eq-bar-3 {
-  0%, 100% { height: 5px; }
-  50% { height: 12px; }
+
+  0%,
+  100% {
+    height: 5px;
+  }
+
+  50% {
+    height: 12px;
+  }
 }
 
 .animate-eq-1 {
@@ -294,3 +325,24 @@ body {
   animation: eq-bar-3 0.65s ease-in-out infinite;
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-line-strong) / 0.35) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-line));
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--c-accent) / 0.7);
+}

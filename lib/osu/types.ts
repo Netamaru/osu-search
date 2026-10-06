@@ -70,6 +70,9 @@ export interface Beatmapset {
   tags?: string;
   ranked_date: string | null;
   last_updated?: string;
+  favorited_at?: string;
+  added_at?: string;
+  is_deleted_from_osu?: boolean;
   rating?: number;
   covers: BeatmapCovers;
   beatmaps?: Beatmap[];

@@ -226,6 +226,11 @@ export function BeatmapDetailModal({
                         Explicit
                       </span>
                     ) : null}
+                    {(activeBeatmapset as { is_deleted_from_osu?: boolean }).is_deleted_from_osu ? (
+                      <span className="rounded-[2px] border border-amber-500/40 bg-amber-950/70 px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-amber-200 uppercase shadow-xs">
+                        Archived Snapshot (Official Deleted)
+                      </span>
+                    ) : null}
                   </div>
 
                   <div className="min-w-0">
@@ -301,7 +306,7 @@ export function BeatmapDetailModal({
                     />
                   ) : null}
 
-                  <BeatmapActions id={activeBeatmapset.id} />
+                  <BeatmapActions id={activeBeatmapset.id} beatmapset={activeBeatmapset} />
                 </div>
               </div>
 

@@ -21,9 +21,59 @@ type ChangelogEntry = {
 
 const CHANGELOG_DATA: ChangelogEntry[] = [
   {
-    version: "v1.4.0",
-    date: "Latest",
+    version: "v2.0.0",
+    date: "October 2026",
     badge: "Current",
+    highlights:
+      "Full osu! OAuth 2.0 user login, personal beatmap collections, 1-click favorites, PostgreSQL offline map archival, Card vs List view switcher, and UI polish.",
+    changes: [
+      {
+        type: "feat",
+        title: "Login with osu! Account (OAuth 2.0)",
+        description:
+          "Sign in directly with your official osu! account via OAuth 2.0 code authorization. Displays your avatar, username, and user dropdown menu in the top navigation bar with easy logout and profile shortcuts.",
+      },
+      {
+        type: "feat",
+        title: "Personal Beatmap Collections System",
+        description:
+          "Organize beatmaps into customized private collections (e.g. stream training, jump practice, anime OSTs). Add or remove beatmaps effortlessly with a unified modal from search cards, lists, and detail views.",
+      },
+      {
+        type: "feat",
+        title: "1-Click Beatmap Favorites",
+        description:
+          "Save your top beatmaps with a single click and access them anytime on the dedicated /favorites page with instant text filtering and view options.",
+      },
+      {
+        type: "feat",
+        title: "Card vs. List View Toggle",
+        description:
+          "Switch between visual card view and compact high-density list view on both Collections and Favorites pages, with your preference remembered automatically.",
+      },
+      {
+        type: "feat",
+        title: "Offline & Deleted Beatmap Archival (PostgreSQL Snapshot)",
+        description:
+          "Whenever a beatmap is saved to collections or favorites, complete metadata snapshots are archived to PostgreSQL. If a map is later removed or DMCA'd on official osu!, it remains fully accessible and viewable with an Archived Snapshot badge.",
+      },
+      {
+        type: "feat",
+        title: "Collection Search, Scrollable Lists & Local Timestamps",
+        description:
+          "Search through collections in real-time with an integrated search bar, navigate long lists with smooth scroll containment, and view exact creation/addition dates converted to your local device timezone.",
+      },
+      {
+        type: "improve",
+        title: "Isolated API Credentials Architecture",
+        description:
+          "Dedicated server environment credentials strictly to user OAuth authentication, requiring browser-stored credentials for search queries to prevent shared rate-limit throttling.",
+      }
+    ],
+  },
+  {
+    version: "v1.4.0",
+    date: "September 2026",
     highlights:
       "Custom music player with volume memory, card frosted glass & micro-interactions, live extra difficulty preview, and beatmap detail redesign.",
     changes: [
@@ -332,9 +382,8 @@ export function ChangelogModal({ onClose }: { onClose: () => void }) {
               <div key={entry.version} className="relative">
                 {/* Timeline node */}
                 <div
-                  className={`absolute -left-[25px] sm:-left-[29px] top-1.5 h-3 w-3 rounded-full ring-4 ring-canvas ${
-                    entry.badge ? "bg-accent" : "bg-line-strong"
-                  }`}
+                  className={`absolute -left-[25px] sm:-left-[29px] top-1.5 h-3 w-3 rounded-full ring-4 ring-canvas ${entry.badge ? "bg-accent" : "bg-line-strong"
+                    }`}
                   aria-hidden="true"
                 />
 

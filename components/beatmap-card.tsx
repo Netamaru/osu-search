@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import { BeatmapActions } from "@/components/beatmap-actions";
 import { BeatmapCover } from "@/components/beatmap-cover";
 import { DifficultyChip, DifficultyStatsBody } from "@/components/difficulty-chip";
-import { formatDate, formatLength, formatUtcDateTime } from "@/lib/format";
+import { formatDate, formatLength, formatLocalDateTime, formatUtcDateTime } from "@/lib/format";
 import { visibleBeatmaps } from "@/lib/osu/difficulties";
 import type { Beatmap, Beatmapset, SearchFilters } from "@/lib/osu/types";
 
@@ -12,20 +12,24 @@ export const BeatmapCard = memo(function BeatmapCard({
   converts,
   convertsFilter = "any",
   onOpenDetails,
+  addedAt,
+  addedAtLabel,
   priority = false,
 }: {
   beatmapset: Beatmapset;
-  mode: SearchFilters["mode"];
+  mode?: SearchFilters["mode"];
   converts?: Beatmap[];
   convertsFilter?: SearchFilters["converts"];
   onOpenDetails?: (beatmapset: Beatmapset) => void;
+  addedAt?: string;
+  addedAtLabel?: string;
   priority?: boolean;
 }) {
   const [hoveredBeatmap, setHoveredBeatmap] = useState<Beatmap | null>(null);
   const [hoveredExtraBeatmap, setHoveredExtraBeatmap] = useState<Beatmap | null>(null);
 
   const handleOpenDetails = onOpenDetails ? () => onOpenDetails(beatmapset) : undefined;
-  const beatmaps = visibleBeatmaps(beatmapset, mode, converts, convertsFilter);
+  const beatmaps = visibleBeatmaps(beatmapset, mode ?? "", converts, convertsFilter);
   const extra = Math.max(0, beatmaps.length - 8);
   const cover = beatmapset.covers.card || beatmapset.covers["cover@2x"] || beatmapset.covers.list;
 
@@ -43,6 +47,9 @@ export const BeatmapCard = memo(function BeatmapCard({
       : maxLength !== undefined
         ? formatLength(maxLength)
         : undefined;
+
+  const timestamp = addedAt || beatmapset.favorited_at || beatmapset.added_at;
+  const timestampLabel = addedAtLabel || (beatmapset.favorited_at ? "Favorited" : "Added");
 
   return (
     <article className="card card-link group relative flex h-full min-w-0 flex-col hover:z-20">
@@ -71,6 +78,11 @@ export const BeatmapCard = memo(function BeatmapCard({
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
         <div className="pointer-events-none min-w-0">
+          {(beatmapset as { is_deleted_from_osu?: boolean }).is_deleted_from_osu ? (
+            <span className="inline-block mb-1.5 rounded-[2px] border border-amber-500/40 bg-amber-950/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-amber-200 uppercase">
+              Archived Snapshot (Official Deleted)
+            </span>
+          ) : null}
           <h2 className="text-base leading-snug font-semibold break-words [overflow-wrap:anywhere] group-hover:text-accent transition-colors">{beatmapset.title}</h2>
           <p className="mt-1 text-sm text-muted break-words [overflow-wrap:anywhere]">{beatmapset.artist}</p>
         </div>
@@ -112,6 +124,14 @@ export const BeatmapCard = memo(function BeatmapCard({
             </span>
           ) : null}
         </p>
+        {timestamp ? (
+          <div className="pointer-events-none -mt-1.5 flex items-center gap-1 font-mono text-[11px] text-accent/90 font-medium" suppressHydrationWarning>
+            <span>{timestampLabel}</span>
+            <time dateTime={timestamp} suppressHydrationWarning>
+              {formatLocalDateTime(timestamp)}
+            </time>
+          </div>
+        ) : null}
         <div className="relative z-10 mt-auto flex min-h-[46px] flex-wrap items-center gap-1.5 content-start">
           {beatmaps.slice(0, 8).map((beatmap, index) => (
             <DifficultyChip
@@ -203,7 +223,7 @@ export const BeatmapCard = memo(function BeatmapCard({
             </div>
           ) : null}
         </div>
-        <BeatmapActions id={beatmapset.id} size="sm" onOpenDetails={handleOpenDetails} />
+        <BeatmapActions id={beatmapset.id} size="sm" onOpenDetails={handleOpenDetails} beatmapset={beatmapset} />
       </div>
     </article>
   );

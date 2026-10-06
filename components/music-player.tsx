@@ -252,7 +252,7 @@ export function MusicPlayer({
           onClick={togglePlay}
           disabled={hasError}
           aria-label={isPlaying ? "Pause audio preview" : "Play audio preview"}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] bg-accent text-canvas font-bold transition-all hover:bg-accent-strong active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-xs"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] bg-pink-500 hover:bg-pink-600 text-white font-bold transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-xs"
         >
           {isPlaying ? (
             <PauseIcon className="h-4 w-4 fill-current" />
